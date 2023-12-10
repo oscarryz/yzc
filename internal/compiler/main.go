@@ -30,11 +30,9 @@ func Build(input []SourceFile) {
 		}
 
 	}
-	cmd := exec.Command("go", "build", "generated")
-	output, err := cmd.CombinedOutput()
+	cmd := exec.Command("go", "build", "-C", "generated/", "-o", "i-was-generated", "cmd/yzc/main.go")
+	output, _ := cmd.CombinedOutput()
 	fmt.Println(string(output))
-	if err != nil {
-	}
 	return
 
 }
