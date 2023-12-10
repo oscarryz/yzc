@@ -11,29 +11,26 @@ import (
 
 var logger = log.Default()
 
+const sourceSuffix = ".go"
+
 func main() {
 	files := collectSourceFiles("cmd", "internal")
-	fmt.Printf("%v", files)
+	fmt.Printf("%v\n", files)
 	fmt.Println("Hi from main")
-	compiler.Run(`
-	package main
-	import "fmt"
-    func main() {
-       fmt.Println("Hello from test")
-	}`)
+	compiler.Build(files)
 }
 
-func collectSourceFiles(sourceRoots ...string) []string {
-	var files []string
+func collectSourceFiles(sourceRoots ...string) []compiler.SourceFile {
+	var files []compiler.SourceFile
 	for _, sourceRoot := range sourceRoots {
 		logger.Printf("Walking: %s", sourceRoot)
 		_ = filepath.WalkDir(sourceRoot, func(path string, info fs.DirEntry, err error) error {
-			if strings.HasSuffix(path, ".go") {
-				files = append(files, path)
+
+			if strings.HasSuffix(path, sourceSuffix) && !info.IsDir() {
+				files = append(files, compiler.NewSourceFile(sourceRoot, path))
 			}
 			return nil
 		})
 	}
 	return files
-
 }
