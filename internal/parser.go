@@ -21,6 +21,9 @@ func parse(tokens []token) (*ast, error) {
 	return a, nil
 }
 func (p *parser) parse(tokens []token) (*ast, error) {
+	for _, t := range tokens {
+		logger.Printf("%v", t)
+	}
 	return &ast{}, nil
 
 }

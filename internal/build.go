@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type SourceFile struct {
@@ -29,8 +30,11 @@ func Build(input []SourceFile) {
 	// compile the code
 
 	for _, sourceFile := range input {
+		logger.Printf("Processing: %s\n", sourceFile.path)
 		content, e := os.ReadFile(sourceFile.path)
-		tokens := tokenize(e, content)
+
+		fileName, _ := strings.CutPrefix(sourceFile.path, sourceFile.root)
+		tokens, e := tokenize(fileName, string(content))
 		a, e := parse(tokens)
 		// ir
 		e = generateCode(a)

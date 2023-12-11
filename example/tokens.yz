@@ -1,0 +1,20 @@
+// Tokens example
+
+/*
+  This is a multiline string
+*/
+
+n: 1
+d: 1.0
+?: 1.0.to_string()
+s: 'hello'
+multiline_string: "
+Yo
+"
+blocks: {
+    array: [] Int
+    a[0] = -1
+}
+blocks()
+s.len()
+'bye'

@@ -11,10 +11,12 @@ import (
 
 var logger = log.Default()
 
-const sourceSuffix = ".go"
+const sourceSuffix = ".yz"
 
 func main() {
-	files := collectSourceFiles("cmd", "internal")
+	fmt.Println()
+	// todo: handle nested source dirs, e.g. below `example` is inside `.`
+	files := collectSourceFiles(".", "example", "internal")
 	fmt.Printf("%v\n", files)
 	fmt.Println("Hi from main")
 	internal.Build(files)
