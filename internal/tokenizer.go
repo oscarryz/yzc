@@ -10,7 +10,6 @@ import (
 
 const (
 	EOF tokenType = iota
-
 	// delimiters
 	LBRACE
 	RBRACE
@@ -32,6 +31,7 @@ const (
 
 	// identifiers
 	IDENTIFIER
+	TYPEIDENTIFIER
 	BREAK
 	CONTINUE
 	RETURN
@@ -39,24 +39,25 @@ const (
 )
 
 func (tt tokenType) String() string {
-	descriptions := [21]string{
-		"EOF",
-		"LBRACE",
-		"RBRACE",
-		"COLON",
-		"PERIOD",
-		"SEMICOLON",
-		"LPAREN",
-		"RPAREN",
-		"LBRACKET",
-		"RBRACKET",
-		"EQL",
-		"COMMA",
+	descriptions := [22]string{
+		`EOF`,
+		`{`,
+		`}`,
+		`:`,
+		`.`,
+		`;`,
+		`(`,
+		`)`,
+		`[`,
+		`]`,
+		`=`,
+		`,`,
 		"NEWLINE",
-		"NUMBER",
-		"DECIMAL",
-		"STRING",
-		"IDENTIFIER",
+		`num`,
+		`dec`,
+		`str`,
+		`id`,
+		`tid`,
 		"BREAK",
 		"CONTINUE",
 		"RETURN",
@@ -68,14 +69,33 @@ func (tt tokenType) String() string {
 type tokenType uint
 
 type token struct {
-	line int
-	col  int
+	pos  position
 	tt   tokenType
 	data string
 }
+type position struct {
+	line int
+	col  int
+}
+
+func (p position) String() string {
+	return fmt.Sprintf("line: %d col: %d", p.line, p.col)
+}
+
+func pos(line, col int) position {
+	return position{line, col}
+}
 
 func (t token) String() string {
-	return fmt.Sprintf("token: l:%d c:%d %s:%s", t.line, t.col, t.tt, t.data)
+	//return fmt.Sprintf("token: l:%d c:%d %s:%s", t.line, t.col, t.tt, t.data)
+	switch t.tt {
+	case NUMBER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
+		return fmt.Sprintf("%s:%s ", t.tt, t.data)
+	default:
+		return fmt.Sprintf("%#s ", t.tt)
+	}
+	// id:n ":" n:0
+	// id:d ":" d: 1.0
 
 }
 
@@ -89,23 +109,34 @@ type tokenizer struct {
 }
 
 func tokenize(fileName string, content string) ([]token, error) {
-	// todo: create a first token with the file name.
-	//  e.g. a.yz -> token: tt:identifier data:'a'
-	//  maybe somewhere else
-	fmt.Printf("Tokenizing: %s\n", fileName)
-	t := &tokenizer{content, []token{}, 1, 1, 0, true}
+	t := &tokenizer{content, []token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
+	printTokens(tokens)
 	return tokens, e
+}
+func printTokens(tokens []token) {
+	ll := 1
+	fmt.Printf("Tokens: \n%d: ", ll)
+	for _, t := range tokens {
+		if ll != t.pos.line {
+			ll = t.pos.line
+			fmt.Println()
+			fmt.Printf("%d: ", ll)
+		}
+		fmt.Printf("%v", t)
+	}
+	fmt.Println()
 }
 
 func (t *tokenizer) addToken(tt tokenType, data string) {
-	t.tokens = append(t.tokens, token{t.line, t.col, tt, data})
+	t.tokens = append(t.tokens, token{pos(t.line, t.col), tt, data})
 }
 func (t *tokenizer) nextRune() rune {
 	r, w := utf8.DecodeRuneInString(t.content[t.pos:])
 	if r == utf8.RuneError {
 		// we're done tokenizing
 		t.keepGoing = false
+		t.addToken(EOF, "EOF")
 	}
 	t.pos += w
 	t.col++
@@ -136,6 +167,10 @@ func (t *tokenizer) skipMultilineComment() {
 	}
 }
 func lookupIdent(identifier string) tokenType {
+	runes := []rune(identifier)
+	if unicode.IsUpper(runes[0]) {
+		return TYPEIDENTIFIER
+	}
 	switch identifier {
 	case "break":
 		return BREAK
@@ -166,7 +201,8 @@ func (t *tokenizer) addStringLiteral() {
 }
 
 func (t *tokenizer) isIdentifier(r rune) bool {
-	return unicode.IsPrint(r) &&
+	return !unicode.IsSpace(r) &&
+		unicode.IsPrint(r) &&
 		!unicode.IsDigit(r) &&
 		!strings.ContainsRune("{}[]().,:;\"'`", r)
 }
@@ -220,9 +256,12 @@ func (t *tokenizer) addNegativeNumber() {
 }
 
 func (t *tokenizer) tokenize() ([]token, error) {
-	for t.keepGoing {
-		r := t.nextRune()
 
+	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
+		if r == '\n' {
+			t.line++
+			t.col = 0
+		}
 		if unicode.IsSpace(r) {
 			continue
 		}
@@ -249,10 +288,6 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			t.addToken(EQL, "=")
 		case ',':
 			t.addToken(COMMA, ",")
-		case '\n':
-			t.addToken(NEWLINE, "\n")
-			t.line++
-			t.col = 1
 		case '/':
 			if t.peek() == '/' {
 				t.nextRune()
@@ -282,7 +317,6 @@ func (t *tokenizer) tokenize() ([]token, error) {
 				return t.tokens, errors.New(fmt.Sprintf("Illegal token at: %d %d", t.line, t.col))
 			}
 		}
-
 	}
 	return t.tokens, nil
 }

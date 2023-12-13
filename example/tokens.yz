@@ -18,3 +18,7 @@ blocks: {
 blocks()
 s.len()
 'bye'
+Person: {
+    name String
+}
+me: Person('Alice')

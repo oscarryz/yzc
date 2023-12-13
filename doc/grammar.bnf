@@ -1,0 +1,91 @@
+//{} Zero or more
+// [] optional
+// ? zero or one
+// +  One or more
+// () Grouping
+// |  Or
+
+PROGRAM ::= EXPRESSION+ | STATEMENT*
+
+
+// Expressions
+EXPRESSION ::= BLOCK_INVOCATION
+             | METHOD_INVOCATION
+             | "(" EXPRESSION ")"
+             | LITERAL
+// Statements
+STATEMENT ::= VARIABLE_DEFINITION
+    | VARIABLE_DECLARATION
+    | BLOCK_DECLARATION ["=" BLOCK_LITERAL]
+    | BLOCK_DEFINITION
+    | "return" EXPRESSION*
+    | "continue"
+    | "break"
+
+
+// Declaration
+VARIABLE_DECLARATION ::=
+    VARIABLE_IDENTIFIER
+    | VARIABLE_IDENTIFIER [TYPE] // optional in inferrable generics
+    | VARIABLE_IDENTIFIER ARRAY_DECLARATION
+    | VARIABLE_IDENTIFIER DICTIONARY_DECLARATION
+
+BLOCK_DECLARATION ::= TYPE_IDENTIFIER " {" {(VARIABLE_IDENTIFIER TYPE)}"}"
+// Array decl
+ARRAY_DECLARATION ::= "[]" TYPE
+                    | "[]" // generic array
+// Dictionary decl
+DICTIONARY_DECLARATION ::= "[" TYPE ":" TYPE "]"
+                    | "[:]" // generic dictionary
+
+
+// Definitions
+BLOCK_DEFINITION ::= TYPE_IDENTIFIER ":" BLOCK_LITERAL
+VARIABLE_DEFINITION  ::= VARIABLE_IDENTIFIER ":" (EXPRESSION)
+
+// Literals
+LITERAL ::= BLOCK_LITERAL
+            | NUMBER_LITERAL
+            | STRING_LITERAL
+            | ARRAY_LITERAL
+            | DICTIONARY_LITERAL
+
+BLOCK_LITERAL ::= "{" EXPRESSION+ | STATEMENT* "}"
+NUMBER_LITERAL ::= ('0-9')+ | "-"("0-9")+
+STRING_LITERAL ::= "\"" {PRINTABLE} "\""
+                  | "'" {PRINTABLE}  "'"
+                  | "`" {PRINTABLE} "`"
+ARRAY_LITERAL ::= "[" {EXPRESSION} "]" // constraint, expression should be of the same type
+DICTIONARY_LITERAL ::= "[" {  EXPRESSION ":" EXPRESSION } "]"
+
+// member access
+MEMBER_ACCESS ::= { VARIABLE_IDENTIFIER "." }
+// Invocation
+BLOCK_INVOCATION ::= VARIABLE_IDENTIFIER "()"
+                     | VARIABLE_IDENTIFIER "(" INVOCATION_ARGS ")"
+                     | VARIABLE_IDENTIFIER "(" NAMED_INVOCATION_ARGS ")"
+                     | VARIABLE_IDENTIFIER INVOCATION_ARGS
+
+METHOD_INVOCATION ::= MEMBER_ACCESS BLOCK_INVOCATION
+                    | MEMBER_ACCESS NON_WORD_INVOCATION
+NON_WORD_INVOCATION ::= MEMBER_ACCESS NON_WORD_INVOCATION INVOCATION_ARGS
+
+INVOCATION_ARGS ::= {EXPRESSION}
+NAMED_INVOCATION_ARGS ::= {IDENTIFIER ":" EXPRESSION}
+
+// Identifiers
+TYPE_IDENTIFIER ::= UPPER_CASE {VARIABLE_IDENTIFIER}
+TYPE ::= TYPE_IDENTIFIER
+IDENTIFIER ::= VARIABLE_IDENTIFIER | TYPE_IDENTIFIER
+RESERVED_CHAR ::= "{"|"}"|"["|"]"|":"|"//"|","|"."
+IDENTIFIER_CHAR ::= PRINTABLE [^RESERVED_CHAR]
+                    | NO_WORD_IDENTIFIER // TODO review non word
+UPPER_CASE ::= UNICODE_UPPER_CASE
+LOWER_CASE ::= UNICODE_LOWECASE
+VARIABLE_IDENTIFIER ::= [^NUMERIC_CHARACTER] IDENTIFIER_CHARACTER {IDENTIFIER_CHARACTER | NUMERIC_CHARACTER}
+                        | [^WORD_IDENTIFIER] IDENTIFIER_CHARACTER { IDENTIFIER_CHARACTER | NUMERIC_CHARACTER }
+WORD_IDENTIFIER ::= UNICODE_UPPER_CASE
+NO_WORD_IDENTIFIER ::=  [^NO_WORD_IDENTIFIER]
+PRINTABLE ::= // anything that can be printed on the screen
+IDENTIFIER_CHARACTER ::= 'A-Z' | 'a-z'
+NUMERIC_CHARACTER ::= "0" | "1"  | "2"  | "3"  | "4"  | "5"  | "6"  | "7"  | "8"  | "9"
