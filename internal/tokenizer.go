@@ -32,6 +32,7 @@ const (
 	// identifiers
 	IDENTIFIER
 	TYPEIDENTIFIER
+	PUNCTIDENTIFIER
 	BREAK
 	CONTINUE
 	RETURN
@@ -39,7 +40,7 @@ const (
 )
 
 func (tt tokenType) String() string {
-	descriptions := [22]string{
+	descriptions := [23]string{
 		`EOF`,
 		`{`,
 		`}`,
@@ -58,6 +59,7 @@ func (tt tokenType) String() string {
 		`str`,
 		`id`,
 		`tid`,
+		`punctid`,
 		"BREAK",
 		"CONTINUE",
 		"RETURN",
@@ -87,15 +89,12 @@ func pos(line, col int) position {
 }
 
 func (t token) String() string {
-	//return fmt.Sprintf("token: l:%d c:%d %s:%s", t.line, t.col, t.tt, t.data)
 	switch t.tt {
 	case NUMBER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
 		return fmt.Sprintf("%s:%s ", t.tt, t.data)
 	default:
 		return fmt.Sprintf("%#s ", t.tt)
 	}
-	// id:n ":" n:0
-	// id:d ":" d: 1.0
 
 }
 
@@ -136,7 +135,6 @@ func (t *tokenizer) nextRune() rune {
 	if r == utf8.RuneError {
 		// we're done tokenizing
 		t.keepGoing = false
-		t.addToken(EOF, "EOF")
 	}
 	t.pos += w
 	t.col++
@@ -179,8 +177,17 @@ func lookupIdent(identifier string) tokenType {
 	case "return":
 		return RETURN
 	default:
-		return IDENTIFIER
+		// all punct
+		allPunctuation := true
+		for _, r := range runes {
+			allPunctuation = allPunctuation && !unicode.IsLetter(r)
+		}
+		if allPunctuation {
+			return PUNCTIDENTIFIER
+		}
 	}
+	return IDENTIFIER
+
 }
 
 func (t *tokenizer) addStringLiteral() {
@@ -318,5 +325,6 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			}
 		}
 	}
+	t.addToken(EOF, "EOF")
 	return t.tokens, nil
 }

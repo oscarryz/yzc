@@ -5,6 +5,9 @@ import (
 )
 
 type program struct {
+	blockBody *blockBody
+}
+type blockBody struct {
 	expressions []expression
 	statements  []statement
 }
@@ -14,10 +17,8 @@ type expression interface {
 type statement struct {
 	name string
 }
-type ast struct {
-}
 
-func (a *ast) Bytes() []byte {
+func (a *program) Bytes() []byte {
 	return []byte(`package main
 func main() {
     print("Hello world (from parser)")
@@ -31,13 +32,10 @@ type parser struct {
 	prog         *program
 }
 
-func parse(fileName string, tokens []token) (*ast, error) {
+func parse(fileName string, tokens []token) *program {
 	p := newParser(fileName, tokens)
-	a, e := p.parse()
-	if e != nil {
-		return nil, e
-	}
-	return a, nil
+	a := p.parse()
+	return a
 }
 
 func newParser(fileName string, tokens []token) *parser {
@@ -45,28 +43,34 @@ func newParser(fileName string, tokens []token) *parser {
 		fileName,
 		tokens,
 		0,
-		&program{
-			[]expression{},
-			[]statement{}}}
+		nil,
+	}
 }
 
-func (p *parser) parse() (*ast, error) {
-	p.program()
-	return &ast{}, nil
+func (p *parser) parse() *program {
+	return p.program()
 }
 
-// PROGRAM ::= EXPRESSION+ | STATEMENT*
-func (p *parser) program() {
+// program ::= block_body
+func (p *parser) program() *program {
+	return &program{p.blockBody()}
+}
 
+// block_body::= expression+ | statement*
+func (p *parser) blockBody() *blockBody {
+	bb := &blockBody{
+		[]expression{},
+		[]statement{},
+	}
 	token := p.nextToken()
 	for token.tt != EOF {
 		switch token.tt {
 		// an expression
 		case LPAREN, NUMBER, STRING, DECIMAL:
-			p.addExpression(p.expression(token))
+			bb.expressions = append(bb.expressions, p.expression())
 		// might be a statement
 		case RETURN, CONTINUE, BREAK, TYPEIDENTIFIER:
-			p.statement(token)
+			p.statement()
 		}
 		// if neither we need another token to know
 		if token.tt == IDENTIFIER {
@@ -74,23 +78,23 @@ func (p *parser) program() {
 			switch nt.tt {
 			case EOF:
 				break
-			case LPAREN, PERIOD:
-				p.expression(token) // blockinvocation, member access
+			case LPAREN, PERIOD, RBRACE:
+				p.expression() // blockinvocation, member access, array access
 			case TYPEIDENTIFIER, COLON:
-				p.statement(token, nt)
+				p.statement()
 			}
 		}
 		token = p.nextToken()
 	}
 	fmt.Println("Program: {")
-	for _, stmts := range p.prog.statements {
+	for _, stmts := range bb.statements {
 		fmt.Printf("stmt: %s\n", stmts)
 	}
-	for _, expr := range p.prog.expressions {
+	for _, expr := range bb.expressions {
 		fmt.Printf("expr: %s\n", expr.value())
 	}
 	fmt.Println("}")
-
+	return bb
 }
 
 func (bl BasicLit) value() string {
@@ -121,12 +125,13 @@ func (e empty) value() string {
 
 var emptyExpression = empty{}
 
-func (p *parser) expression(t token) expression {
+func (p *parser) expression() expression {
+	t := p.token()
 	switch t.tt {
 	case NUMBER, DECIMAL, STRING:
 		return &BasicLit{t.pos, t.tt, t.data}
 	case LPAREN:
-		e := p.expression(p.nextToken())
+		e := p.expression()
 		rparen := p.nextToken()
 		if rparen.tt != RPAREN {
 			logger.Fatalf(`Missing ")" at %v`, rparen.pos)
@@ -142,12 +147,7 @@ func (p *parser) expression(t token) expression {
 	return emptyExpression
 }
 
-func (p *parser) addExpression(e expression) {
-	fmt.Printf("adding expr: %#v\n", e)
-	p.prog.expressions = append(p.prog.expressions, e)
-}
-func (p *parser) statement(tokens ...token) {
-	fmt.Printf("stmt: %v\n", tokens)
+func (p *parser) statement() {
 }
 
 func variableDefinition() {
@@ -166,11 +166,14 @@ func variableDeclaration() {
 
 }
 
+func (p *parser) token() token {
+	return p.tokens[p.currentToken]
+}
 func (p *parser) nextToken() token {
 	if p.currentToken >= len(p.tokens) {
 		return token{pos(0, 0), EOF, "EOF"}
 	}
-	t := p.tokens[p.currentToken]
+	t := p.token()
 	p.currentToken++
 	return t
 }

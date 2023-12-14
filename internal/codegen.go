@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func generateCode(a *ast) error {
+func generateCode(a *program) error {
 	d := "generated/"
 	logger.Printf("About to create: %s", d)
 	err := os.MkdirAll(d, 0750)

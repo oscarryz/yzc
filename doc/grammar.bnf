@@ -1,91 +1,105 @@
-//{} Zero or more
 // [] optional
 // ? zero or one
 // +  One or more
+// * zero or more
 // () Grouping
 // |  Or
 
-PROGRAM ::= EXPRESSION+ | STATEMENT*
+program ::=  block_body
+
+block_body ::= expression+ | statement*
 
 
 // Expressions
-EXPRESSION ::= BLOCK_INVOCATION
-             | METHOD_INVOCATION
-             | "(" EXPRESSION ")"
-             | LITERAL
+expression ::= block_invocation
+             | method_invocation
+             | "(" expression ")"
+             | literal
+             | literal_non_word_invocation
+             | array_access
+             | dictionary_access
 // Statements
-STATEMENT ::= VARIABLE_DEFINITION
-    | VARIABLE_DECLARATION
-    | BLOCK_DECLARATION ["=" BLOCK_LITERAL]
-    | BLOCK_DEFINITION
-    | "return" EXPRESSION*
+statement ::= variable_definition
+    | variable_declaration
+    | block_declaration ["=" block_literal]
+    | block_definition
+    | "return" expression*
     | "continue"
     | "break"
 
 
 // Declaration
-VARIABLE_DECLARATION ::=
-    VARIABLE_IDENTIFIER
-    | VARIABLE_IDENTIFIER [TYPE] // optional in inferrable generics
-    | VARIABLE_IDENTIFIER ARRAY_DECLARATION
-    | VARIABLE_IDENTIFIER DICTIONARY_DECLARATION
+variable_declaration ::=
+     variable [type] // optional in inferrable generics
+    | variable_with_info_string
+    | variable array_declaration
+    | variable dictionary_declaration
 
-BLOCK_DECLARATION ::= TYPE_IDENTIFIER " {" {(VARIABLE_IDENTIFIER TYPE)}"}"
+block_declaration ::= type_identifier " {" (variable type)* "}"
 // Array decl
-ARRAY_DECLARATION ::= "[]" TYPE
+array_declaration ::= "[]" type
                     | "[]" // generic array
 // Dictionary decl
-DICTIONARY_DECLARATION ::= "[" TYPE ":" TYPE "]"
-                    | "[:]" // generic dictionary
-
+dictionary_declaration ::= "[" type ":" type "]"
+                         | "[:]" // generic dictionary
 
 // Definitions
-BLOCK_DEFINITION ::= TYPE_IDENTIFIER ":" BLOCK_LITERAL
-VARIABLE_DEFINITION  ::= VARIABLE_IDENTIFIER+ ":" EXPRESSION+
+block_definition ::= type_identifier ":" block_literal
+variable_definition  ::= variable ":" (expression)+
 
 // Literals
-LITERAL ::= BLOCK_LITERAL
-            | NUMBER_LITERAL
-            | STRING_LITERAL
-            | ARRAY_LITERAL
-            | DICTIONARY_LITERAL
+literal ::= block_literal
+            | number_literal
+            | string_literal
+            | array_literal
+            | dictionary_literal
 
-BLOCK_LITERAL ::= "{" EXPRESSION+ | STATEMENT* "}"
-NUMBER_LITERAL ::= ('0-9')+ | "-"("0-9")+
-STRING_LITERAL ::= "\"" {PRINTABLE} "\""
-                  | "'" {PRINTABLE}  "'"
-                  | "`" {PRINTABLE} "`"
-ARRAY_LITERAL ::= "[" {EXPRESSION} "]" // constraint, expression should be of the same type
-DICTIONARY_LITERAL ::= "[" {  EXPRESSION ":" EXPRESSION } "]"
+block_literal ::= "{" block_body "}"
+number_literal ::= ('0-9')+ | "-"("0-9")+
+string_literal ::= "\"" PRINTABLE* "\""
+                  | "'" PRINTABLE*  "'"
+                  | "`" PRINTABLE* "`"
+info_string ::= string_literal variable
+variable_with_info_string ::= info_string
+
+array_literal ::= "[" expression* "]" // constraint, expression should be of the same type
+dictionary_literal ::= "[" ( expression ":" expression )* "]"
+
+// Array access
+array_access ::= array_read | array_write
+array_read ::= identifier "[" expression "]"
+array_write ::= identifier "[" expression "]" "=" expression
+
+// Dictionary access
+dictionary_access ::= dictionary_read | dictionary_write
+dictionary_read ::=  identifier "[" expression "]"
+dictionary_write ::= identifier "[" expression ":" expression "]"
+
+
 
 // member access
-MEMBER_ACCESS ::= { VARIABLE_IDENTIFIER "." }
+member_access ::= variable ("." variable)+
 // Invocation
-BLOCK_INVOCATION ::= VARIABLE_IDENTIFIER "()"
-                     | VARIABLE_IDENTIFIER "(" INVOCATION_ARGS ")"
-                     | VARIABLE_IDENTIFIER "(" NAMED_INVOCATION_ARGS ")"
-                     | VARIABLE_IDENTIFIER INVOCATION_ARGS
+block_invocation ::=  variable invocation_args
+                     | variable named_invocation_args
 
-METHOD_INVOCATION ::= MEMBER_ACCESS BLOCK_INVOCATION
-                    | MEMBER_ACCESS NON_WORD_INVOCATION
-NON_WORD_INVOCATION ::= MEMBER_ACCESS NON_WORD_INVOCATION INVOCATION_ARGS
+method_invocation ::= member_access block_invocation
+                    | member_access non_word_invocation
+non_word_invocation ::= member_access punctuation_identifier invocation_args
+literal_non_word_invocation ::= literal punctuation_identifier invocation_args
 
-INVOCATION_ARGS ::= {EXPRESSION}
-NAMED_INVOCATION_ARGS ::= {IDENTIFIER ":" EXPRESSION}
+
+invocation_args ::= "(" ")"
+                | "(" (expression)+ ")"
+                |  (expression)+
+named_invocation_args ::= "(" (identifier ":" expression)* ")"
 
 // Identifiers
-TYPE_IDENTIFIER ::= UPPER_CASE {VARIABLE_IDENTIFIER}
-TYPE ::= TYPE_IDENTIFIER
-IDENTIFIER ::= VARIABLE_IDENTIFIER | TYPE_IDENTIFIER
-RESERVED_CHAR ::= "{"|"}"|"["|"]"|":"|"//"|","|"."
-IDENTIFIER_CHAR ::= PRINTABLE [^RESERVED_CHAR]
-                    | NO_WORD_IDENTIFIER // TODO review non word
-UPPER_CASE ::= UNICODE_UPPER_CASE
-LOWER_CASE ::= UNICODE_LOWECASE
-VARIABLE_IDENTIFIER ::= [^NUMERIC_CHARACTER] IDENTIFIER_CHARACTER {IDENTIFIER_CHARACTER | NUMERIC_CHARACTER}
-                        | [^WORD_IDENTIFIER] IDENTIFIER_CHARACTER { IDENTIFIER_CHARACTER | NUMERIC_CHARACTER }
-WORD_IDENTIFIER ::= UNICODE_UPPER_CASE
-NO_WORD_IDENTIFIER ::=  [^NO_WORD_IDENTIFIER]
-PRINTABLE ::= // anything that can be printed on the screen
-IDENTIFIER_CHARACTER ::= 'A-Z' | 'a-z'
-NUMERIC_CHARACTER ::= "0" | "1"  | "2"  | "3"  | "4"  | "5"  | "6"  | "7"  | "8"  | "9"
+identifier ::= variable_identifier | type_identifier
+type ::= type_identifier
+variable::= variable_identifier
+type_identifier ::= UPPER_CASE (variable_identifier)*
+variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
+punctuation_identifier ::= PUNCTUATION+// as defined by unicode, minus reserved punct
+word_identifier ::= CHARACTER+ //
+reserved_char ::= "{"|"}"|"["|"]"|":"|"//"|","|"."
