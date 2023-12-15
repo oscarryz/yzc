@@ -13,16 +13,18 @@ block_body ::= expression+ | statement*
 // Expressions
 expression ::= block_invocation
              | method_invocation
-             | "(" expression ")"
+             | "(" expression+ ")"
              | literal
              | literal_non_word_invocation
              | array_access
              | dictionary_access
+             | variable
+             | member_access
 // Statements
 statement ::= variable_definition
     | variable_declaration
-    | block_declaration ["=" block_literal]
-    | block_definition
+    | new_type_declaration ["=" block_literal]
+    | new_type_definition
     | "return" expression*
     | "continue"
     | "break"
@@ -35,7 +37,7 @@ variable_declaration ::=
     | variable array_declaration
     | variable dictionary_declaration
 
-block_declaration ::= type_identifier " {" (variable type)* "}"
+new_type_declaration ::= type_identifier " {" (variable type)* "}"
 // Array decl
 array_declaration ::= "[]" type
                     | "[]" // generic array
@@ -44,18 +46,20 @@ dictionary_declaration ::= "[" type ":" type "]"
                          | "[:]" // generic dictionary
 
 // Definitions
-block_definition ::= type_identifier ":" block_literal
+new_type_definition ::= type_identifier ":" block_literal
 variable_definition  ::= variable ":" (expression)+
 
 // Literals
 literal ::= block_literal
             | number_literal
+            | decimal_literal
             | string_literal
             | array_literal
             | dictionary_literal
 
 block_literal ::= "{" block_body "}"
-number_literal ::= ('0-9')+ | "-"("0-9")+
+number_literal ::= ["-"]('0-9')+
+decimal_literal ::= ["-"]('0-9')+ "." ('0-9')+
 string_literal ::= "\"" PRINTABLE* "\""
                   | "'" PRINTABLE*  "'"
                   | "`" PRINTABLE* "`"
@@ -67,39 +71,37 @@ dictionary_literal ::= "[" ( expression ":" expression )* "]"
 
 // Array access
 array_access ::= array_read | array_write
-array_read ::= identifier "[" expression "]"
-array_write ::= identifier "[" expression "]" "=" expression
+array_read ::= array_instance "[" expression "]"
+array_write ::= array_instance "[" expression "]" "=" expression
+array_instance ::= variable | array_literal
 
 // Dictionary access
 dictionary_access ::= dictionary_read | dictionary_write
-dictionary_read ::=  identifier "[" expression "]"
-dictionary_write ::= identifier "[" expression ":" expression "]"
-
-
+dictionary_read ::=  dictionary_instance "[" expression "]"
+dictionary_write ::= dictionary_instance  "[" expression ":" expression "]"
+dictionary_instance  ::= variable | dictionary_literal
 
 // member access
-member_access ::= variable ("." variable)+
+member_access ::= expression  ("." variable)+
 // Invocation
-block_invocation ::=  variable invocation_args
-                     | variable named_invocation_args
-
-method_invocation ::= member_access block_invocation
-                    | member_access non_word_invocation
-non_word_invocation ::= member_access punctuation_identifier invocation_args
+block_invocation ::=  variable invocation
+method_invocation ::= member_access invocation
 literal_non_word_invocation ::= literal punctuation_identifier invocation_args
 
+invocation ::= invocation_args
+               | named_invocation_args
+               | non_word_invocation
 
 invocation_args ::= "(" ")"
                 | "(" (expression)+ ")"
                 |  (expression)+
-named_invocation_args ::= "(" (identifier ":" expression)* ")"
+named_invocation_args ::= "(" (variable ":" expression)* ")"
+non_word_invocation ::= (" ")+ punctuation_identifier (" ")+ expression+
 
 // Identifiers
-identifier ::= variable_identifier | type_identifier
 type ::= type_identifier
 variable::= variable_identifier
 type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
-punctuation_identifier ::= PUNCTUATION+// as defined by unicode, minus reserved punct
-word_identifier ::= CHARACTER+ //
+punctuation_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
 reserved_char ::= "{"|"}"|"["|"]"|":"|"//"|","|"."
