@@ -1,40 +1,11 @@
 package internal
 
-import (
-	"fmt"
-)
-
-type program struct {
-	blockBody *blockBody
-}
-type blockBody struct {
-	expressions []expression
-	statements  []statement
-}
-type expression interface {
-	value() string
-}
-type statement struct {
-	name string
-}
-
-func (a *program) Bytes() []byte {
-	return []byte(`package main
-func main() {
-    print("Hello world (from parser)")
-}`)
-}
-
-type parser struct {
-	fileName     string
-	tokens       []token
-	currentToken int
-	prog         *program
-}
+import "fmt"
 
 func parse(fileName string, tokens []token) *program {
 	p := newParser(fileName, tokens)
 	a := p.parse()
+	fmt.Printf("%#v", a)
 	return a
 }
 
@@ -45,6 +16,29 @@ func newParser(fileName string, tokens []token) *parser {
 		0,
 		nil,
 	}
+}
+
+type parser struct {
+	fileName     string
+	tokens       []token
+	currentToken int
+	prog         *program
+}
+
+func (p *parser) token() token {
+	return p.tokenPlus(0)
+}
+func (p *parser) nextToken() token {
+	if p.currentToken >= len(p.tokens) {
+		return token{pos(0, 0), EOF, "EOF"}
+	}
+	t := p.token()
+	p.currentToken++
+	return t
+}
+
+func (p *parser) tokenPlus(i int) token {
+	return p.tokens[p.currentToken+i]
 }
 
 func (p *parser) parse() *program {
@@ -60,41 +54,47 @@ func (p *parser) program() *program {
 func (p *parser) blockBody() *blockBody {
 	bb := &blockBody{
 		[]expression{},
-		[]statement{},
+		[]*statement{},
 	}
-	token := p.nextToken()
+	token := p.token()
 	for token.tt != EOF {
-		switch token.tt {
-		// an expression
-		case LPAREN, NUMBER, STRING, DECIMAL:
-			bb.expressions = append(bb.expressions, p.expression())
-		// might be a statement
-		case RETURN, CONTINUE, BREAK, TYPEIDENTIFIER:
-			p.statement()
-		}
-		// if neither we need another token to know
-		if token.tt == IDENTIFIER {
-			nt := p.nextToken()
-			switch nt.tt {
-			case EOF:
-				break
-			case LPAREN, PERIOD, RBRACE:
-				p.expression() // blockinvocation, member access, array access
-			case TYPEIDENTIFIER, COLON:
-				p.statement()
+		e := p.attemptExpression()
+		if e != nil {
+			bb.expressions = append(bb.expressions, e)
+		} else {
+			s := p.attemptStatement()
+			bb.statements = append(bb.statements, s)
+			if s != nil {
+			} else {
+				p.syntaxError("BlockBody should contain expressions or statements")
 			}
 		}
-		token = p.nextToken()
+		p.consume()
+		token = p.token()
 	}
-	fmt.Println("Program: {")
-	for _, stmts := range bb.statements {
-		fmt.Printf("stmt: %s\n", stmts)
-	}
-	for _, expr := range bb.expressions {
-		fmt.Printf("expr: %s\n", expr.value())
-	}
-	fmt.Println("}")
 	return bb
+}
+
+type program struct {
+	blockBody *blockBody
+}
+
+func (a *program) Bytes() []byte {
+	return []byte(`package main
+func main() {
+    print("Hello world (from parser)")
+}`)
+}
+
+type blockBody struct {
+	expressions []expression
+	statements  []*statement
+}
+type expression interface {
+	value() string
+}
+type statement struct {
+	name string
 }
 
 func (bl BasicLit) value() string {
@@ -109,12 +109,8 @@ type BasicLit struct {
 
 type ParenthesisExp struct {
 	lparen position
-	exp    expression
+	exps   []expression
 	rparen position
-}
-
-func (pe *ParenthesisExp) value() string {
-	return fmt.Sprintf(`( %s )`, pe.exp.value())
 }
 
 type empty struct{}
@@ -126,28 +122,38 @@ func (e empty) value() string {
 var emptyExpression = empty{}
 
 func (p *parser) expression() expression {
-	t := p.token()
-	switch t.tt {
-	case NUMBER, DECIMAL, STRING:
-		return &BasicLit{t.pos, t.tt, t.data}
-	case LPAREN:
-		e := p.expression()
-		rparen := p.nextToken()
-		if rparen.tt != RPAREN {
-			logger.Fatalf(`Missing ")" at %v`, rparen.pos)
-		}
-		pe := &ParenthesisExp{
-			t.pos,
-			e,
-			rparen.pos,
-		}
-		return pe
-	}
-
 	return emptyExpression
 }
 
 func (p *parser) statement() {
+}
+
+func (p *parser) syntaxError(message string) {
+	p.currentToken = len(p.tokens) - 1
+	logger.Fatalf("[%s:%s] %s", p.fileName, p.token().pos, message)
+}
+
+func (p *parser) attemptExpression() expression {
+	token := p.token()
+	switch token.tt {
+	// literal
+	case INTEGER, DECIMAL, STRING:
+		return &BasicLit{token.pos, token.tt, token.data}
+
+	}
+	return nil
+}
+
+func (p *parser) attemptStatement() *statement {
+	return nil
+}
+
+func (p *parser) consume() {
+	//if p.currentToken >= len(p.tokens) {
+	//	return token{pos(0, 0), EOF, "EOF"}
+	//}
+	p.currentToken++
+
 }
 
 func variableDefinition() {
@@ -165,25 +171,3 @@ func blockInvocation() {
 func variableDeclaration() {
 
 }
-
-func (p *parser) token() token {
-	return p.tokens[p.currentToken]
-}
-func (p *parser) nextToken() token {
-	if p.currentToken >= len(p.tokens) {
-		return token{pos(0, 0), EOF, "EOF"}
-	}
-	t := p.token()
-	p.currentToken++
-	return t
-}
-
-/*
-src/garden/vegetables/Asparagus.yz
-	garden/
-	garden.yz
-	vegetables.yz
-	garden/
-		vegetables/
-			Asparagus.yz
-*/

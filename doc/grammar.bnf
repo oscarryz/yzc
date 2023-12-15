@@ -13,7 +13,7 @@ block_body ::= expression+ | statement*
 // Expressions
 expression ::= block_invocation
              | method_invocation
-             | "(" expression+ ")"
+             | parenthesized_expressions
              | literal
              | literal_non_word_invocation
              | array_access
@@ -32,7 +32,7 @@ statement ::= variable_definition
 
 // Declaration
 variable_declaration ::=
-     variable [type] // optional in inferrable generics
+      variable [type] // optional in inferrable generics
     | variable_with_info_string
     | variable array_declaration
     | variable dictionary_declaration
@@ -86,9 +86,10 @@ member_access ::= expression  ("." variable)+
 // Invocation
 block_invocation ::=  variable invocation
 method_invocation ::= member_access invocation
-literal_non_word_invocation ::= literal punctuation_identifier invocation_args
+parenthesized_expressions ::= "(" expression+ ")"
+literal_non_word_invocation ::= literal nonword_identifier invocation_args
 
-invocation ::= invocation_args
+invocation ::=   invocation_args
                | named_invocation_args
                | non_word_invocation
 
@@ -96,12 +97,12 @@ invocation_args ::= "(" ")"
                 | "(" (expression)+ ")"
                 |  (expression)+
 named_invocation_args ::= "(" (variable ":" expression)* ")"
-non_word_invocation ::= (" ")+ punctuation_identifier (" ")+ expression+
+non_word_invocation ::= (" ")+ nonword_identifier (" ")+ expression+
 
 // Identifiers
 type ::= type_identifier
 variable::= variable_identifier
 type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
-punctuation_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
+nonword_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
 reserved_char ::= "{"|"}"|"["|"]"|":"|"//"|","|"."

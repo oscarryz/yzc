@@ -25,14 +25,14 @@ const (
 	NEWLINE
 
 	// literals
-	NUMBER
+	INTEGER
 	DECIMAL
 	STRING
 
 	// identifiers
 	IDENTIFIER
 	TYPEIDENTIFIER
-	PUNCTIDENTIFIER
+	NONWORDIDENTIFIER
 	BREAK
 	CONTINUE
 	RETURN
@@ -90,7 +90,7 @@ func pos(line, col int) position {
 
 func (t token) String() string {
 	switch t.tt {
-	case NUMBER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
 		return fmt.Sprintf("%s:%s ", t.tt, t.data)
 	default:
 		return fmt.Sprintf("%#s ", t.tt)
@@ -141,7 +141,11 @@ func (t *tokenizer) nextRune() rune {
 	return r
 }
 func (t *tokenizer) unReadRune(r rune) {
-	t.pos -= utf8.RuneLen(r)
+	if r == utf8.RuneError {
+		t.keepGoing = false
+	} else {
+		t.pos -= utf8.RuneLen(r)
+	}
 	t.col--
 }
 func (t *tokenizer) peek() rune {
@@ -183,7 +187,7 @@ func lookupIdent(identifier string) tokenType {
 			allPunctuation = allPunctuation && !unicode.IsLetter(r)
 		}
 		if allPunctuation {
-			return PUNCTIDENTIFIER
+			return NONWORDIDENTIFIER
 		}
 	}
 	return IDENTIFIER
@@ -247,7 +251,7 @@ func (t *tokenizer) readNumber(positive bool) {
 		r = t.nextRune()
 	}
 	t.unReadRune(r)
-	tt := NUMBER
+	tt := INTEGER
 	if seenPoint {
 		tt = DECIMAL
 	}
