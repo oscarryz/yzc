@@ -112,6 +112,5 @@ dictionary_access: {
    d["key"]
    d["key":"new_value"]
 }
-
 // Statements
 

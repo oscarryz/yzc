@@ -11,101 +11,89 @@ block_body
   ::= expression+ | statement*
 
 
+////////////////
 // Expressions
+////////////////
 expression 
   ::= block_invocation
     | method_invocation
     | parenthesized_expressions
-    | literal
     | literal_non_word_invocation
     | array_access
     | dictionary_access
-    | variable
     | member_access
-
-// Statements
-statement 
-  ::= variable_definition
-    | variable_declaration
-    | new_type_declaration ["=" block_literal]
-    | new_type_definition
-    | "return" expression*
-    | "continue"
-    | "break"
+    | literal
+    | variable
 
 
-// Declaration
-variable_declaration 
-  ::= variable [type] // generics
-    | variable_with_info_string
-    | variable array_declaration
-    | variable dictionary_declaration
+// Invocation
+// b()
+block_invocation
+  ::=  variable invocation
 
-new_type_declaration
-  ::= type_identifier "{" ([variable] type)* "}"
-  | type_identifier "{" (variable ";")* "}"
+// a.b(1)
+method_invocation
+  ::= member_access invocation
 
-array_declaration
-  ::= "[" "]" type
-    | "[" "]" // generic array
+// ( 1 2 )
+parenthesized_expressions 
+  ::= "(" expression+ ")"
 
-dictionary_declaration
-  ::= "[" type ":" type "]"
-    | "[" ":" "]" // generic
+// 1 + 2
+// [] << "a"
+// "hello" ++ "world"
+literal_non_word_invocation 
+  ::= literal non_word_invocation
 
-// Definitions
-new_type_definition 
-  ::= type_identifier ":" block_literal
-variable_definition  
-  ::= variable ":" (expression)+
+invocation 
+  ::= invocation_args
+    | named_invocation_args
+    | non_word_invocation
 
-// Literals
-literal 
-  ::= block_literal
-    | number_literal
-    | decimal_literal
-    | string_literal
-    | array_literal
-    | dictionary_literal
+// ()
+// (1)
+// 1
+invocation_args 
+  ::= "(" ")"
+    | "(" (expression)+ ")"
+    |  (expression)+
 
-block_literal 
-  ::= "{" block_body "}"
-number_literal 
-  ::= ["-"]('0-9')+
-decimal_literal 
-  ::= ["-"]('0-9')+ "." ('0-9')+
-string_literal 
-  ::= "\"" PRINTABLE* "\""
-    | "'" PRINTABLE*  "'"
-    | "`" PRINTABLE* "`"
-info_string 
-  ::= string_literal variable
-variable_with_info_string 
-  ::= info_string
+// (x: 1 y: 2)
+named_invocation_args 
+   ::= "(" (variable ":" expression)* ")"
 
-array_literal 
-  ::= "[" expression* "]" //same type
-dictionary_literal 
-  ::= "[" ( expression ":" expression )* "]"
+// + 1
+non_word_invocation
+  ::= (" ")+ nonword_identifier (" ")+ expression+
 
 // Array access
-array_access 
+array_access
   ::= array_read | array_write
-array_read 
+
+// a["key"]
+array_read
   ::= array_instance "[" expression "]"
-array_write 
+
+// a["key"] = "value"
+array_write
   ::= array_instance "[" expression "]" "=" expression
-array_instance 
+
+array_instance
   ::= variable | array_literal
 
 // Dictionary access
-dictionary_access 
+dictionary_access
   ::= dictionary_read
     | dictionary_write
-dictionary_read 
-  ::= dictionary_instance "[" expression "]"
+
+// d["key"]
+dictionary_read
+ ::= dictionary_instance "[" expression "]"
+
+// d["key":"new_value"]
 dictionary_write
  ::= dictionary_instance  "[" expression ":" expression "]"
+
 dictionary_instance
   ::= variable
     | dictionary_literal
@@ -113,35 +101,114 @@ dictionary_instance
 // member access
 member_access
   ::= expression  ("." variable)+
-// Invocation
-block_invocation
-  ::=  variable invocation
-method_invocation 
-  ::= member_access invocation
-parenthesized_expressions 
-  ::= "(" expression+ ")"
-literal_non_word_invocation 
-  ::= literal nonword_identifier invocation_args
 
-invocation 
-  ::=   invocation_args
-      | named_invocation_args
-      | non_word_invocation
 
-invocation_args 
-  ::= "(" ")"
-    | "(" (expression)+ ")"
-    |  (expression)+
+// Literals
+literal
+  ::= block_literal
+    | number_literal
+    | decimal_literal
+    | string_literal
+    | array_literal
+    | dictionary_literal
 
-named_invocation_args 
-   ::= "(" (variable ":" expression)* ")"
+// { 1 s: "hi"  }
+block_literal
+  ::= "{" block_body "}"
 
-non_word_invocation 
-  ::= (" ")+ nonword_identifier (" ")+ expression+
+// - 2
+number_literal
+  ::= ["-"]('0-9')+
+
+// - 1.2
+decimal_literal
+  ::= ["-"]('0-9')+ "." ('0-9')+
+
+// "double quote" 'single quote' `backtick quote`
+string_literal
+  ::= "\"" PRINTABLE* "\""
+    | "'" PRINTABLE*  "'"
+    | "`" PRINTABLE* "`"
+string
+  ::= string_literal
+
+
+// ["a" "b" "c"]
+array_literal
+  ::= "[" expression* "]" //same type
+
+// ["k1": "v1" "k2":"v2]
+dictionary_literal
+  ::= "[" ( expression ":" expression )* "]"
+
+variable::= variable_identifier
+
+
+//////////////////
+// Statements
+//////////////////
+statement
+    ::= [string] variable_definition
+      | [string] variable_declaration
+      | [string] new_type_declaration ["=" block_literal]
+      | [string] new_type_definition
+      | "return" expression*
+      | "continue"
+      | "break"
+
+
+// a: 1
+// b: (dict["key"] ++ "suffix")
+variable_definition
+    ::= variable ":" (expression)+
+
+// a Int
+// b
+// a []Int
+// c [String:Int]
+// d {}
+// e {f}
+// g {String;String}
+variable_declaration
+  ::= variable [type] // generics
+    | variable array_declaration
+    | variable dictionary_declaration
+    | variable block_type
+
+// { a ; x Int; String; String; t }
+block_type
+  ::= "{" type_member? "}"
+    | "{" type_member (";" type_member )* "}"
+
+// Point { a ; x Int; String; String; t }
+new_type_declaration ::= type_identifier block_type
+
+type_member
+  ::= variable
+    | variable type
+    | type
+
+// [] String
+// []
+array_declaration
+  ::= "[" "]" type
+    | "[" "]" // generic array
+
+// [String : Int]
+// [:]
+dictionary_declaration
+  ::= "[" type ":" type "]"
+    | "[" ":" "]" // generic
+
+// Definitions
+// Point: { 1 s:"hi" }
+new_type_definition
+  ::= type_identifier ":" block_literal
+
+
 
 // Identifiers
 type ::= type_identifier
-variable::= variable_identifier
 type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
 nonword_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
