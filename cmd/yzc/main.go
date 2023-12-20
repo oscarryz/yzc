@@ -18,7 +18,6 @@ func main() {
 	// todo: handle nested source dirs, e.g. below `example` is inside `.`
 	files := collectSourceFiles("example/simple", "internal")
 	fmt.Printf("%v\n", files)
-	fmt.Println("Hi from main")
 	internal.Build(files)
 
 }

@@ -81,7 +81,7 @@ type position struct {
 }
 
 func (p position) String() string {
-	return fmt.Sprintf("line: %d col: %d", p.line, p.col)
+	return fmt.Sprintf("at line: %d col: %d", p.line, p.col)
 }
 
 func pos(line, col int) position {
@@ -93,7 +93,7 @@ func (t token) String() string {
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
 		return fmt.Sprintf("%s:%s ", t.tt, t.data)
 	default:
-		return fmt.Sprintf("%#s ", t.tt)
+		return fmt.Sprintf("%#v ", t.tt)
 	}
 
 }
@@ -181,12 +181,12 @@ func lookupIdent(identifier string) tokenType {
 	case "return":
 		return RETURN
 	default:
-		// all punct
-		allPunctuation := true
+		// all nonLetter
+		allNonLetter := true
 		for _, r := range runes {
-			allPunctuation = allPunctuation && !unicode.IsLetter(r)
+			allNonLetter = allNonLetter && !unicode.IsLetter(r)
 		}
-		if allPunctuation {
+		if allNonLetter {
 			return NONWORDIDENTIFIER
 		}
 	}
@@ -196,7 +196,7 @@ func lookupIdent(identifier string) tokenType {
 
 func (t *tokenizer) addStringLiteral() {
 
-	// todo: scape literals
+	// todo: scape literals e.g. "One \"word\"" -> One "word"
 	opening := t.nextRune()
 	r := t.nextRune()
 	builder := strings.Builder{}

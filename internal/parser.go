@@ -2,11 +2,9 @@ package internal
 
 import "fmt"
 
-func parse(fileName string, tokens []token) *program {
+func parse(fileName string, tokens []token) (*program, error) {
 	p := newParser(fileName, tokens)
-	a := p.parse()
-	fmt.Printf("%#v", a)
-	return a
+	return p.parse()
 }
 
 func newParser(fileName string, tokens []token) *parser {
@@ -41,17 +39,18 @@ func (p *parser) tokenPlus(i int) token {
 	return p.tokens[p.currentToken+i]
 }
 
-func (p *parser) parse() *program {
+func (p *parser) parse() (*program, error) {
 	return p.program()
 }
 
 // program ::= block_body
-func (p *parser) program() *program {
-	return &program{p.blockBody()}
+func (p *parser) program() (*program, error) {
+	body, err := p.blockBody()
+	return &program{body}, err
 }
 
 // block_body::= expression+ | statement*
-func (p *parser) blockBody() *blockBody {
+func (p *parser) blockBody() (*blockBody, error) {
 	bb := &blockBody{
 		[]expression{},
 		[]statement{},
@@ -59,16 +58,16 @@ func (p *parser) blockBody() *blockBody {
 	token := p.token()
 	for token.tt != EOF {
 		if p.exploreExpression() {
-			p.expression()
+			bb.expressions = append(bb.expressions, p.expression())
 		} else if p.exploreStatement() {
 			p.statement()
 		} else {
-			p.syntaxError("BlockBody should contain expressions or statements")
+			return nil, p.syntaxError("BlockBody should contain expressions or statements")
 		}
 		p.consume()
 		token = p.token()
 	}
-	return bb
+	return bb, nil
 }
 
 type program struct {
@@ -82,10 +81,19 @@ func main() {
 }`)
 }
 
+func (p *program) String() string {
+	return fmt.Sprintf("blockBody: %#v", p.blockBody)
+}
+
 type blockBody struct {
 	expressions []expression
 	statements  []statement
 }
+
+func (bb *blockBody) String() string {
+	return fmt.Sprintf("expressions: %#v statements: %#v", bb.expressions, bb.statements)
+}
+
 type expression interface {
 	value() string
 }
@@ -133,16 +141,15 @@ func (p *parser) statement() statement {
 	return nil
 }
 
-func (p *parser) syntaxError(message string) {
+func (p *parser) syntaxError(message string) error {
 	p.currentToken = len(p.tokens) - 1
-	logger.Fatalf("[%s:%s] %s", p.fileName, p.token().pos, message)
+	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
 }
 
 func (p *parser) exploreExpression() bool {
 	token := p.token()
 	switch token.tt {
-	case IDENTIFIER:
-		// plus1 := p.tokenPlus(1)
+	case INTEGER, DECIMAL, STRING:
 		return true
 
 	}
@@ -155,11 +162,7 @@ func (p *parser) exploreStatement() bool {
 }
 
 func (p *parser) consume() {
-	//if p.currentToken >= len(p.tokens) {
-	//	return token{pos(0, 0), EOF, "EOF"}
-	//}
 	p.currentToken++
-
 }
 
 func variableDefinition() {

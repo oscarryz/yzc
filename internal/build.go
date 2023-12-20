@@ -35,7 +35,10 @@ func Build(input []SourceFile) {
 
 		fileName, _ := strings.CutPrefix(sourceFile.path, sourceFile.root)
 		tokens, e := tokenize(fileName, string(content))
-		a := parse(fileName, tokens)
+		a, e := parse(fileName, tokens)
+		if e != nil {
+			logger.Fatal(e)
+		}
 		// ir
 		e = generateCode(a)
 		if e != nil {
