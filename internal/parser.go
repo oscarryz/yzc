@@ -54,20 +54,16 @@ func (p *parser) program() *program {
 func (p *parser) blockBody() *blockBody {
 	bb := &blockBody{
 		[]expression{},
-		[]*statement{},
+		[]statement{},
 	}
 	token := p.token()
 	for token.tt != EOF {
-		e := p.attemptExpression()
-		if e != nil {
-			bb.expressions = append(bb.expressions, e)
+		if p.exploreExpression() {
+			p.expression()
+		} else if p.exploreStatement() {
+			p.statement()
 		} else {
-			s := p.attemptStatement()
-			bb.statements = append(bb.statements, s)
-			if s != nil {
-			} else {
-				p.syntaxError("BlockBody should contain expressions or statements")
-			}
+			p.syntaxError("BlockBody should contain expressions or statements")
 		}
 		p.consume()
 		token = p.token()
@@ -88,13 +84,13 @@ func main() {
 
 type blockBody struct {
 	expressions []expression
-	statements  []*statement
+	statements  []statement
 }
 type expression interface {
 	value() string
 }
-type statement struct {
-	name string
+type statement interface {
+	value() string
 }
 
 func (bl BasicLit) value() string {
@@ -122,18 +118,7 @@ func (e empty) value() string {
 var emptyExpression = empty{}
 
 func (p *parser) expression() expression {
-	return emptyExpression
-}
 
-func (p *parser) statement() {
-}
-
-func (p *parser) syntaxError(message string) {
-	p.currentToken = len(p.tokens) - 1
-	logger.Fatalf("[%s:%s] %s", p.fileName, p.token().pos, message)
-}
-
-func (p *parser) attemptExpression() expression {
 	token := p.token()
 	switch token.tt {
 	// literal
@@ -141,11 +126,32 @@ func (p *parser) attemptExpression() expression {
 		return &BasicLit{token.pos, token.tt, token.data}
 
 	}
+	return emptyExpression
+}
+
+func (p *parser) statement() statement {
 	return nil
 }
 
-func (p *parser) attemptStatement() *statement {
-	return nil
+func (p *parser) syntaxError(message string) {
+	p.currentToken = len(p.tokens) - 1
+	logger.Fatalf("[%s:%s] %s", p.fileName, p.token().pos, message)
+}
+
+func (p *parser) exploreExpression() bool {
+	token := p.token()
+	switch token.tt {
+	case IDENTIFIER:
+		// plus1 := p.tokenPlus(1)
+		return true
+
+	}
+	return false
+
+}
+
+func (p *parser) exploreStatement() bool {
+	return false
 }
 
 func (p *parser) consume() {
