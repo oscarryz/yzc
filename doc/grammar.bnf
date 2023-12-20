@@ -7,21 +7,25 @@
 
 program ::=  block_body
 
-block_body ::= expression+ | statement*
+block_body 
+  ::= expression+ | statement*
 
 
 // Expressions
-expression ::= block_invocation
-             | method_invocation
-             | parenthesized_expressions
-             | literal
-             | literal_non_word_invocation
-             | array_access
-             | dictionary_access
-             | variable
-             | member_access
+expression 
+  ::= block_invocation
+    | method_invocation
+    | parenthesized_expressions
+    | literal
+    | literal_non_word_invocation
+    | array_access
+    | dictionary_access
+    | variable
+    | member_access
+
 // Statements
-statement ::= variable_definition
+statement 
+  ::= variable_definition
     | variable_declaration
     | new_type_declaration ["=" block_literal]
     | new_type_definition
@@ -31,73 +35,109 @@ statement ::= variable_definition
 
 
 // Declaration
-variable_declaration ::=
-      variable [type] // optional in inferrable generics
+variable_declaration 
+  ::= variable [type] // generics
     | variable_with_info_string
     | variable array_declaration
     | variable dictionary_declaration
 
-new_type_declaration ::= type_identifier " {" (variable type)* "}"
-// Array decl
-array_declaration ::= "[]" type
-                    | "[]" // generic array
-// Dictionary decl
-dictionary_declaration ::= "[" type ":" type "]"
-                         | "[:]" // generic dictionary
+new_type_declaration
+  ::= type_identifier "{" ([variable] type)* "}"
+  | type_identifier "{" (variable ";")* "}"
+
+array_declaration
+  ::= "[" "]" type
+    | "[" "]" // generic array
+
+dictionary_declaration
+  ::= "[" type ":" type "]"
+    | "[" ":" "]" // generic
 
 // Definitions
-new_type_definition ::= type_identifier ":" block_literal
-variable_definition  ::= variable ":" (expression)+
+new_type_definition 
+  ::= type_identifier ":" block_literal
+variable_definition  
+  ::= variable ":" (expression)+
 
 // Literals
-literal ::= block_literal
-            | number_literal
-            | decimal_literal
-            | string_literal
-            | array_literal
-            | dictionary_literal
+literal 
+  ::= block_literal
+    | number_literal
+    | decimal_literal
+    | string_literal
+    | array_literal
+    | dictionary_literal
 
-block_literal ::= "{" block_body "}"
-number_literal ::= ["-"]('0-9')+
-decimal_literal ::= ["-"]('0-9')+ "." ('0-9')+
-string_literal ::= "\"" PRINTABLE* "\""
-                  | "'" PRINTABLE*  "'"
-                  | "`" PRINTABLE* "`"
-info_string ::= string_literal variable
-variable_with_info_string ::= info_string
+block_literal 
+  ::= "{" block_body "}"
+number_literal 
+  ::= ["-"]('0-9')+
+decimal_literal 
+  ::= ["-"]('0-9')+ "." ('0-9')+
+string_literal 
+  ::= "\"" PRINTABLE* "\""
+    | "'" PRINTABLE*  "'"
+    | "`" PRINTABLE* "`"
+info_string 
+  ::= string_literal variable
+variable_with_info_string 
+  ::= info_string
 
-array_literal ::= "[" expression* "]" // constraint, expression should be of the same type
-dictionary_literal ::= "[" ( expression ":" expression )* "]"
+array_literal 
+  ::= "[" expression* "]" //same type
+dictionary_literal 
+  ::= "[" ( expression ":" expression )* "]"
 
 // Array access
-array_access ::= array_read | array_write
-array_read ::= array_instance "[" expression "]"
-array_write ::= array_instance "[" expression "]" "=" expression
-array_instance ::= variable | array_literal
+array_access 
+  ::= array_read | array_write
+array_read 
+  ::= array_instance "[" expression "]"
+array_write 
+  ::= array_instance "[" expression "]" "=" expression
+array_instance 
+  ::= variable | array_literal
 
 // Dictionary access
-dictionary_access ::= dictionary_read | dictionary_write
-dictionary_read ::=  dictionary_instance "[" expression "]"
-dictionary_write ::= dictionary_instance  "[" expression ":" expression "]"
-dictionary_instance  ::= variable | dictionary_literal
+dictionary_access 
+  ::= dictionary_read
+    | dictionary_write
+dictionary_read 
+  ::= dictionary_instance "[" expression "]"
+dictionary_write
+ ::= dictionary_instance  "[" expression ":" expression "]"
+dictionary_instance
+  ::= variable
+    | dictionary_literal
 
 // member access
-member_access ::= expression  ("." variable)+
+member_access
+  ::= expression  ("." variable)+
 // Invocation
-block_invocation ::=  variable invocation
-method_invocation ::= member_access invocation
-parenthesized_expressions ::= "(" expression+ ")"
-literal_non_word_invocation ::= literal nonword_identifier invocation_args
+block_invocation
+  ::=  variable invocation
+method_invocation 
+  ::= member_access invocation
+parenthesized_expressions 
+  ::= "(" expression+ ")"
+literal_non_word_invocation 
+  ::= literal nonword_identifier invocation_args
 
-invocation ::=   invocation_args
-               | named_invocation_args
-               | non_word_invocation
+invocation 
+  ::=   invocation_args
+      | named_invocation_args
+      | non_word_invocation
 
-invocation_args ::= "(" ")"
-                | "(" (expression)+ ")"
-                |  (expression)+
-named_invocation_args ::= "(" (variable ":" expression)* ")"
-non_word_invocation ::= (" ")+ nonword_identifier (" ")+ expression+
+invocation_args 
+  ::= "(" ")"
+    | "(" (expression)+ ")"
+    |  (expression)+
+
+named_invocation_args 
+   ::= "(" (variable ":" expression)* ")"
+
+non_word_invocation 
+  ::= (" ")+ nonword_identifier (" ")+ expression+
 
 // Identifiers
 type ::= type_identifier
