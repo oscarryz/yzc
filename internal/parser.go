@@ -149,7 +149,7 @@ func (p *parser) syntaxError(message string) error {
 func (p *parser) exploreExpression() bool {
 	token := p.token()
 	switch token.tt {
-	case INTEGER, DECIMAL, STRING:
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, LPAREN:
 		return true
 
 	}

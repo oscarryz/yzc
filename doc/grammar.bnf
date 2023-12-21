@@ -18,18 +18,22 @@ expression
   ::= block_invocation
     | method_invocation
     | parenthesized_expressions
-    | literal_non_word_invocation
+//    | literal_non_word_invocation
+    | type_instantiation
     | array_access
     | dictionary_access
     | member_access
     | literal
     | variable
+    | assignment
 
 
 // Invocation
 // b()
+// foo.bar()()
+// foo ++ bar ()
 block_invocation
-  ::=  variable invocation
+  ::=  expression invocation
 
 // a.b(1)
 method_invocation
@@ -39,32 +43,23 @@ method_invocation
 parenthesized_expressions 
   ::= "(" expression+ ")"
 
-// 1 + 2
-// [] << "a"
-// "hello" ++ "world"
-literal_non_word_invocation 
-  ::= literal non_word_invocation
+// Point( 1 2 )
+type_instantiation
+  ::= type parenthesis_invocation
 
-invocation 
-  ::= invocation_args
-    | named_invocation_args
-    | non_word_invocation
-
-// ()
-// (1)
-// 1
-invocation_args 
+parenthesis_invocation
   ::= "(" ")"
     | "(" (expression)+ ")"
-    |  (expression)+
+        // (x: 1 y: 2)
+    | "(" (variable ":" expression)* ")"
 
-// (x: 1 y: 2)
-named_invocation_args 
-   ::= "(" (variable ":" expression)* ")"
+non_parenthesis_invocation
+   // + 1
+   ::= nonword_identifier (expression)+
 
-// + 1
-non_word_invocation
-  ::= (" ")+ nonword_identifier (" ")+ expression+
+invocation
+  ::= parenthesis_invocation
+    | non_parenthesis_invocation
 
 // Array access
 array_access
@@ -141,6 +136,10 @@ array_literal
 dictionary_literal
   ::= "[" ( expression ":" expression )* "]"
 
+assignment
+  ::=
+    variable+ "=" expression+
+
 variable::= variable_identifier
 
 
@@ -150,7 +149,7 @@ variable::= variable_identifier
 statement
     ::= [string] variable_definition
       | [string] variable_declaration
-      | [string] new_type_declaration ["=" block_literal]
+      | [string] new_type_declaration
       | [string] new_type_definition
       | "return" expression*
       | "continue"
@@ -161,6 +160,7 @@ statement
 // b: (dict["key"] ++ "suffix")
 variable_definition
     ::= variable ":" (expression)+
+    |   variable type "=" expression
 
 // a Int
 // b
@@ -201,9 +201,9 @@ dictionary_declaration
     | "[" ":" "]" // generic
 
 // Definitions
-// Point: { 1 s:"hi" }
+// Point { 1 s:"hi" }
 new_type_definition
-  ::= type_identifier ":" block_literal
+  ::= type_identifier block_literal
 
 
 
