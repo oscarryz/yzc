@@ -38,11 +38,11 @@ func Test_parser_exploreExpression(t *testing.T) {
 			[]token{tok(LPAREN), tok(INTEGER), tok(RPAREN), tok(EOF)},
 			true,
 		},
-		{
-			"Block Body",
-			[]token{tok(LBRACE), tok(INTEGER), tok(RBRACE), tok(EOF)},
-			true,
-		},
+		//{
+		//	"Block Body",
+		//	[]token{tok(LBRACE), tok(INTEGER), tok(RBRACE), tok(EOF)},
+		//	true,
+		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

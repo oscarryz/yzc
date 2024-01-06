@@ -90,6 +90,9 @@ func (p *parser) syntaxError(message string) error {
 func (p *parser) exploreExpression() bool {
 	return p.explore(expressionTrie())
 }
+
+// TODO: repetition
+// TODO: return the trie type
 func (p *parser) explore(trie *Trie) bool {
 	node := trie
 	t := p.nextToken()

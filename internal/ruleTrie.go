@@ -1,6 +1,6 @@
 package internal
 
-type ruleToken = tokenType
+type ruleType = tokenType
 
 const (
 	BODY = ILLEGAL + iota
@@ -8,9 +8,15 @@ const (
 	STMT
 	PARENTHESIS_EXPR
 	INTEGER_EXPR
+	STRING_EXPR
 	DECIMAL_EXPR
 	BLOCK_EXPR
 	EMPTY_BLOCK_EXPR
+	IDENTIFIER_EXPR
+	ASSIGNMENT_EXPR
+	NEW_INSTANCE_EXPR
+	PARAMLESS_NEW_INSTANCE_EXPR
+	NAMED_ARGS_INSTANTIATION_EXPR
 )
 
 type Trie struct {
@@ -37,7 +43,7 @@ func filterComplex(tries []*Trie) ([]*Trie, bool) {
 	}
 	return r, len(r) > 0
 }
-func buildTrie(rules [][]ruleToken) *Trie {
+func buildTrie(rules [][]ruleType) *Trie {
 
 	root := new(Trie)
 	root.children = []*Trie{}
@@ -61,17 +67,18 @@ func buildTrie(rules [][]ruleToken) *Trie {
 }
 
 func expressionTrie() *Trie {
-	return buildTrie([][]ruleToken{
-		{
-			LPAREN, EXPR, RPAREN, PARENTHESIS_EXPR,
-		}, {
-			INTEGER, INTEGER_EXPR,
-		}, {
-			DECIMAL, DECIMAL_EXPR,
-		}, {
-			LBRACE, BODY, RBRACE, BLOCK_EXPR,
-		}, {
-			LBRACE, RBRACE, EMPTY_BLOCK_EXPR,
-		},
+
+	return buildTrie([][]ruleType{
+		{LPAREN, EXPR, RPAREN, PARENTHESIS_EXPR},
+		{INTEGER, INTEGER_EXPR},
+		{STRING, STRING_EXPR},
+		{DECIMAL, DECIMAL_EXPR},
+		{LBRACE, BODY, RBRACE, BLOCK_EXPR},
+		{LBRACE, RBRACE, EMPTY_BLOCK_EXPR},
+		{IDENTIFIER, IDENTIFIER_EXPR},
+		{IDENTIFIER, EQL, EXPR, ASSIGNMENT_EXPR},
+		{TYPEIDENTIFIER, LPAREN, EXPR, RPAREN, NEW_INSTANCE_EXPR},
+		{TYPEIDENTIFIER, LPAREN, IDENTIFIER, COLON, EXPR, RPAREN, NAMED_ARGS_INSTANTIATION_EXPR},
+		{TYPEIDENTIFIER, LPAREN, RPAREN, PARAMLESS_NEW_INSTANCE_EXPR},
 	})
 }
