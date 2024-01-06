@@ -159,7 +159,7 @@ statement
 // a: 1
 // b: (dict["key"] ++ "suffix")
 variable_definition
-    ::= variable ":" (expression)+
+    ::= variable+ ":" (expression)+
     |   variable type "=" expression
 
 // a Int
@@ -212,4 +212,5 @@ type ::= type_identifier
 type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
 nonword_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
+//noinspection BnfUnusedRule
 reserved_char ::= "{"|"}"|"["|"]"|":"|"//"|","|"."

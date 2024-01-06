@@ -1,6 +1,15 @@
 package internal
 
-import "fmt"
+import (
+	"fmt"
+)
+
+type parser struct {
+	fileName     string
+	tokens       []token
+	currentToken int
+	prog         *program
+}
 
 func parse(fileName string, tokens []token) (*program, error) {
 	p := newParser(fileName, tokens)
@@ -16,13 +25,6 @@ func newParser(fileName string, tokens []token) *parser {
 	}
 }
 
-type parser struct {
-	fileName     string
-	tokens       []token
-	currentToken int
-	prog         *program
-}
-
 func (p *parser) token() token {
 	return p.tokenPlus(0)
 }
@@ -34,7 +36,9 @@ func (p *parser) nextToken() token {
 	p.currentToken++
 	return t
 }
-
+func (p *parser) rewind(n int) {
+	p.currentToken -= n
+}
 func (p *parser) tokenPlus(i int) token {
 	return p.tokens[p.currentToken+i]
 }
@@ -55,76 +59,13 @@ func (p *parser) blockBody() (*blockBody, error) {
 		[]expression{},
 		[]statement{},
 	}
-	token := p.token()
-	for token.tt != EOF {
-		if p.exploreExpression() {
-			bb.expressions = append(bb.expressions, p.expression())
-		} else if p.exploreStatement() {
-			p.statement()
-		} else {
-			return nil, p.syntaxError("BlockBody should contain expressions or statements")
-		}
-		p.consume()
-		token = p.token()
+	tok := p.nextToken()
+	for tok.tt != EOF {
+		p.exploreExpression()
 	}
+
 	return bb, nil
 }
-
-type program struct {
-	blockBody *blockBody
-}
-
-func (a *program) Bytes() []byte {
-	return []byte(`package main
-func main() {
-    print("Hello world (from parser)")
-}`)
-}
-
-func (p *program) String() string {
-	return fmt.Sprintf("blockBody: %#v", p.blockBody)
-}
-
-type blockBody struct {
-	expressions []expression
-	statements  []statement
-}
-
-func (bb *blockBody) String() string {
-	return fmt.Sprintf("expressions: %#v statements: %#v", bb.expressions, bb.statements)
-}
-
-type expression interface {
-	value() string
-}
-type statement interface {
-	value() string
-}
-
-func (bl BasicLit) value() string {
-	return bl.val
-}
-
-type BasicLit struct {
-	pos position
-	tt  tokenType
-	val string
-}
-
-type ParenthesisExp struct {
-	lparen position
-	exps   []expression
-	rparen position
-}
-
-type empty struct{}
-
-func (e empty) value() string {
-	return "<empty>"
-}
-
-var emptyExpression = empty{}
-
 func (p *parser) expression() expression {
 
 	token := p.token()
@@ -147,14 +88,62 @@ func (p *parser) syntaxError(message string) error {
 }
 
 func (p *parser) exploreExpression() bool {
-	token := p.token()
-	switch token.tt {
-	case INTEGER, DECIMAL, STRING, IDENTIFIER, LPAREN:
-		return true
-
+	return p.explore(expressionTrie())
+}
+func (p *parser) explore(trie *Trie) bool {
+	node := trie
+	t := p.nextToken()
+	for t.tt != EOF {
+		//if node.isComplex {
+		//	return p.explore(expressionTrie())
+		//}
+		var nt *Trie
+		var ok bool
+		if nt, ok = find(node.children, t.tt); !ok {
+			// we didn't find it... were we at the end of the trie?
+			if len(node.children) == 1 && node.children[0].isLeaf {
+				return true // we are, so yes!
+			}
+			// we're not at the end, probably we have complex children?
+			var keepGoing bool
+			if ch, ok := filterComplex(node.children); ok {
+				for _, ct := range ch {
+					switch ct.tt {
+					case BODY:
+						keepGoing = p.exploreBody()
+						if keepGoing {
+							nt = ct
+						}
+					case EXPR:
+						// return the token first
+						p.rewind(1)
+						keepGoing = p.exploreExpression()
+						// TODO: have to rewind the whole expression
+						//  temporarily we rewind only 1 because we know it was
+						//  a 1 items expr
+						p.rewind(1)
+						if keepGoing {
+							nt = ct
+						}
+					case STMT:
+						keepGoing = p.exploreStatement()
+						if keepGoing {
+							nt = ct
+						}
+					}
+				}
+			} else {
+				keepGoing = false
+			}
+			if !keepGoing {
+				return false
+			}
+		}
+		node = nt
+		t = p.nextToken()
 	}
-	return false
-
+	// if we were at the end of the leaf...
+	return len(node.children) == 1 && node.children[0].isLeaf
 }
 
 func (p *parser) exploreStatement() bool {
@@ -165,18 +154,33 @@ func (p *parser) consume() {
 	p.currentToken++
 }
 
-func variableDefinition() {
-
+func (p *parser) exploreBody() bool {
+	return false
 }
 
-func memberAccess() {
-
+/*
+Some utility functions below for debugging
+*/
+func (a *program) Bytes() []byte {
+	return []byte(`package main
+func main() {
+    print("Hello world (from parser)")
+}`)
 }
 
-func blockInvocation() {
-
+func (p *program) String() string {
+	return fmt.Sprintf("blockBody: %#v", p.blockBody)
 }
 
-func variableDeclaration() {
-
+func (bb *blockBody) String() string {
+	return fmt.Sprintf("expressions: %#v statements: %#v", bb.expressions, bb.statements)
 }
+
+func (bl BasicLit) value() string {
+	return bl.val
+}
+func (e empty) value() string {
+	return "<empty>"
+}
+
+var emptyExpression = empty{}
