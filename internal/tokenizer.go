@@ -170,6 +170,16 @@ func (t *tokenizer) skipMultilineComment() {
 }
 func lookupIdent(identifier string) tokenType {
 	runes := []rune(identifier)
+
+	// all upper?
+	allUpper := true
+	for _, r := range runes {
+		allUpper = allUpper && unicode.IsUpper(r)
+	}
+	if allUpper {
+		return IDENTIFIER
+	}
+
 	if unicode.IsUpper(runes[0]) {
 		return TYPEIDENTIFIER
 	}
