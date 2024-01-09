@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -65,7 +66,12 @@ func (tt tokenType) String() string {
 		"RETURN",
 		"ILLEGAL",
 	}
-	return descriptions[tt]
+	vot := int(tt)
+	if vot > len(descriptions) {
+		return strconv.Itoa(vot)
+	} else {
+		return descriptions[tt]
+	}
 }
 
 type tokenType uint

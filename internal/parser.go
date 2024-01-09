@@ -87,13 +87,13 @@ func (p *parser) syntaxError(message string) error {
 	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
 }
 
-func (p *parser) exploreExpression() bool {
+func (p *parser) exploreExpression() ruleType {
 	return p.explore(expressionTrie())
 }
 
 // TODO: repetition
 // TODO: return the trie type
-func (p *parser) explore(trie *Trie) bool {
+func (p *parser) explore(trie *Trie) ruleType {
 	node := trie
 	t := p.nextToken()
 	for t.tt != EOF {
@@ -103,9 +103,10 @@ func (p *parser) explore(trie *Trie) bool {
 		var nt *Trie
 		var ok bool
 		if nt, ok = find(node.children, t.tt); !ok {
-			// we didn't find it... were we at the end of the trie?
+			// we didn't find it... are we at the end of the trie?
 			if len(node.children) == 1 && node.children[0].isLeaf {
-				return true // we are, so yes!
+				return node.children[len(node.children)-1].tt
+				//return node.tt // we are, so yes!
 			}
 			// we're not at the end, probably we have complex children?
 			var keepGoing bool
@@ -113,14 +114,24 @@ func (p *parser) explore(trie *Trie) bool {
 				for _, ct := range ch {
 					switch ct.tt {
 					case BODY:
-						keepGoing = p.exploreBody()
+						tt := p.exploreBody()
+						if tt != ILLEGAL {
+							keepGoing = true
+						} else {
+							keepGoing = false
+						}
 						if keepGoing {
 							nt = ct
 						}
 					case EXPR:
 						// return the token first
 						p.rewind(1)
-						keepGoing = p.exploreExpression()
+						tt := p.exploreExpression()
+						if tt != ILLEGAL {
+							keepGoing = true
+						} else {
+							keepGoing = false
+						}
 						// TODO: have to rewind the whole expression
 						//  temporarily we rewind only 1 because we know it was
 						//  a 1 items expr
@@ -129,7 +140,12 @@ func (p *parser) explore(trie *Trie) bool {
 							nt = ct
 						}
 					case STMT:
-						keepGoing = p.exploreStatement()
+						tt := p.exploreStatement()
+						if tt != ILLEGAL {
+							keepGoing = true
+						} else {
+							keepGoing = false
+						}
 						if keepGoing {
 							nt = ct
 						}
@@ -138,27 +154,32 @@ func (p *parser) explore(trie *Trie) bool {
 			} else {
 				keepGoing = false
 			}
+			// TODO: backtrack and try another branch
 			if !keepGoing {
-				return false
+				return ILLEGAL
 			}
 		}
 		node = nt
 		t = p.nextToken()
 	}
 	// if we were at the end of the leaf...
-	return len(node.children) == 1 && node.children[0].isLeaf
+	if len(node.children) == 1 && node.children[0].isLeaf {
+		return node.children[len(node.children)-1].tt
+	} else {
+		return ILLEGAL
+	}
 }
 
-func (p *parser) exploreStatement() bool {
-	return false
+func (p *parser) exploreStatement() ruleType {
+	return ILLEGAL
+}
+
+func (p *parser) exploreBody() ruleType {
+	return ILLEGAL
 }
 
 func (p *parser) consume() {
 	p.currentToken++
-}
-
-func (p *parser) exploreBody() bool {
-	return false
 }
 
 /*

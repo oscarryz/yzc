@@ -16,27 +16,27 @@ func Test_parser_exploreExpression(t *testing.T) {
 	tests := []struct {
 		name   string
 		tokens []token
-		want   bool
+		want   ruleType
 	}{
 		{
 			"Int literal",
 			[]token{tok(INTEGER), tok(EOF)},
-			true,
+			INTEGER_EXPR,
 		},
 		{
 			"Closing brace",
 			[]token{tok(RBRACE), tok(EOF)},
-			false,
+			ILLEGAL,
 		},
 		{
-			"Int literal",
+			"Input:\" 1 }\" will return Integer Expr as it stops i the first `1` and shouldn't process the `}`",
 			[]token{tok(INTEGER), tok(RBRACE), tok(EOF)},
-			true,
+			INTEGER_EXPR,
 		},
 		{
 			"Parenthesis expression",
-			[]token{tok(LPAREN), tok(INTEGER), tok(RPAREN), tok(EOF)},
-			true,
+			[]token{tok(LPAREN), tok(INTEGER), tok(RPAREN), tok(EOF), tok(RBRACE)},
+			PARENTHESIS_EXPR,
 		},
 		//{
 		//	"Block Body",
