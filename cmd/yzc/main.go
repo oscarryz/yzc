@@ -15,8 +15,8 @@ const sourceSuffix = ".yz"
 
 func main() {
 	fmt.Println()
-	// todo: handle nested source dirs, e.g. below `example` is inside `.`
-	files := collectSourceFiles("example/simple", "internal")
+	// todo: handle nested source dirs, e.g. below `examples` is inside `.` so, ['.' './examples'] would duplicate
+	files := collectSourceFiles("examples/simple", "internal")
 	fmt.Printf("%v\n", files)
 	internal.Build(files)
 

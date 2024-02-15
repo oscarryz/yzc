@@ -24,8 +24,10 @@ var logger = log.Default()
 func Build(input []SourceFile) {
 	// read source file
 	// tokenize
-	// create ast -> validate?
-	// second pass
+	// create ast
+	// check / validate?
+	// rewrite (desugar)
+	// IR
 	// generate code
 	// compile the code
 
@@ -47,6 +49,7 @@ func Build(input []SourceFile) {
 		}
 
 	}
+	logger.Printf("go build\n")
 	gobuild()
 }
 

@@ -9,7 +9,7 @@ func tok(tt tokenType) token {
 	return token{
 		pos:  position{l, 1},
 		tt:   tt,
-		data: "1",
+		data: "1i",
 	}
 }
 func Test_parser_exploreExpression(t *testing.T) {

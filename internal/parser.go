@@ -62,6 +62,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 	tok := p.nextToken()
 	for tok.tt != EOF {
 		p.exploreExpression()
+		tok = p.nextToken()
 	}
 
 	return bb, nil
