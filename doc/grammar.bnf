@@ -11,10 +11,10 @@ block_body
   ::= expression+ | statement*
 
 
-////////////////
+//////////////////////////////////
 // Expressions
-////////////////
-expression 
+//////////////////////////////////
+expression
   ::= block_invocation
     | method_invocation
     | parenthesized_expressions
@@ -47,14 +47,15 @@ parenthesized_expressions
 type_instantiation
   ::= type parenthesis_invocation
 
+// ( arg1 arg2 ) | ( named_arg1: arg1 named_arg2: arg2 )
 parenthesis_invocation
   ::= "(" ")"
     | "(" (expression)+ ")"
         // (x: 1 y: 2)
     | "(" (variable ":" expression)* ")"
 
+// + 1
 non_parenthesis_invocation
-   // + 1
    ::= nonword_identifier (expression)+
 
 invocation
@@ -130,11 +131,15 @@ string
 
 // ["a" "b" "c"]
 array_literal
-  ::= "[" expression* "]" //same type
+  ::= "[" expression* "]" //expressions of the same type
+  | "[" "]"  // empty if type is know at declaration
+  | "[" "]" type // empty array of given type for shorthand
 
 // ["k1": "v1" "k2":"v2]
 dictionary_literal
-  ::= "[" ( expression ":" expression )* "]"
+  ::= "[" ( expression ":" expression )* "]" // expressions don't have to be the same type
+  | "[" ":" "]" // empty dictionary of if types are knows at declaration
+  | "[" type "]" type // empty dictionary of given types for shorthand
 
 assignment
   ::=
@@ -143,9 +148,9 @@ assignment
 variable::= variable_identifier
 
 
-//////////////////
+//////////////////////////////////
 // Statements
-//////////////////
+//////////////////////////////////
 statement
     ::= [string] variable_definition
       | [string] variable_declaration
@@ -157,7 +162,7 @@ statement
 
 
 // a: 1
-// b: (dict["key"] ++ "suffix")
+// b: dict["key"] = "suffix"
 variable_definition
     ::= variable+ ":" (expression)+
     |   variable type "=" expression
@@ -166,50 +171,51 @@ variable_definition
 // b
 // a []Int
 // c [String:Int]
-// d {}
-// e {f}
-// g {String;String}
+// d ()
+// e (f A)
+// g (String,String)
 variable_declaration
-  ::= variable [type] // generics
+  ::= variable type
     | variable array_declaration
     | variable dictionary_declaration
-    | variable block_type
+    | variable block_signature
 
-// { a ; x Int; String; String; t }
-block_type
-  ::= "{" type_member? "}"
-    | "{" type_member (";" type_member )* "}"
+// ( A , x Int, String, String, e E )
+block_signature
+  ::= "(" type_member? ")"
+    | "(" type_member ("," type_member )* ")"
 
-// Point { a ; x Int; String; String; t }
-new_type_declaration ::= type_identifier block_type
+// Point ( A , x Int, String, String, e E )
+new_type_declaration ::= type_identifier block_signature [ "=" block_literal ]
 
 type_member
-  ::= variable
-    | variable type
+  ::= variable type ["=" default_value]
     | type
+    | variable ":" default_value
 
-// [] String
-// []
+default_value
+  ::= expression
+
+// [String]
 array_declaration
-  ::= "[" "]" type
-    | "[" "]" // generic array
+  ::= "[" type "]"
 
 // [String : Int]
-// [:]
 dictionary_declaration
   ::= "[" type ":" type "]"
-    | "[" ":" "]" // generic
 
 // Definitions
-// Point { 1 s:"hi" }
+// Point : { 1 s:"hi" }
 new_type_definition
-  ::= type_identifier block_literal
+  ::= type_identifier ":" block_literal
+
 
 
 
 // Identifiers
-type ::= type_identifier
-type_identifier ::= UPPER_CASE (variable_identifier)*
+type ::= generic_type_identifier | type_identifier
+generic_type_identifier ::= UPPER_CASE // single uppercase letter
+type_identifier ::=  UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
 nonword_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
 //noinspection BnfUnusedRule
