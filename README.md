@@ -13,4 +13,5 @@ yzc source_dir
 ```
 
 ## Language Documentation
-TBD
+
+( Yz Design Notes )[200~https://github.com/oscarryz/yz-design-notes]
