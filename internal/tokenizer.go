@@ -17,6 +17,7 @@ const (
 	COLON
 	PERIOD
 	SEMICOLON
+	HASH
 	LPAREN
 	RPAREN
 	LBRACKET
@@ -41,13 +42,14 @@ const (
 )
 
 func (tt tokenType) String() string {
-	descriptions := [23]string{
+	descriptions := [24]string{
 		`EOF`,
 		`{`,
 		`}`,
 		`:`,
 		`.`,
 		`;`,
+		`#`,
 		`(`,
 		`)`,
 		`[`,
@@ -315,6 +317,8 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			t.addToken(EQL, "=")
 		case ',':
 			t.addToken(COMMA, ",")
+		case '#':
+			t.addToken(HASH, "#")
 		case '/':
 			if t.peek() == '/' {
 				t.nextRune()

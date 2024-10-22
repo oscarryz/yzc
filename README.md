@@ -7,6 +7,11 @@ Yz language compiler
 go build yzc/cmd/yzc
 ```
 
+## Test
+```shell
+go test yzc/internal
+```
+
 ## Run
 ```shell
 yzc source_dir 
