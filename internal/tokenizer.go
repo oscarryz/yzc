@@ -41,41 +41,6 @@ const (
 	ILLEGAL
 )
 
-func (tt tokenType) String() string {
-	descriptions := [24]string{
-		`EOF`,
-		`{`,
-		`}`,
-		`:`,
-		`.`,
-		`;`,
-		`#`,
-		`(`,
-		`)`,
-		`[`,
-		`]`,
-		`=`,
-		`,`,
-		"NEWLINE",
-		`num`,
-		`dec`,
-		`str`,
-		`id`,
-		`tid`,
-		`punctid`,
-		"BREAK",
-		"CONTINUE",
-		"RETURN",
-		"ILLEGAL",
-	}
-	vot := int(tt)
-	if vot > len(descriptions) {
-		return strconv.Itoa(vot)
-	} else {
-		return descriptions[tt]
-	}
-}
-
 type tokenType uint
 
 type token struct {
@@ -83,27 +48,10 @@ type token struct {
 	tt   tokenType
 	data string
 }
+
 type position struct {
 	line int
 	col  int
-}
-
-func (p position) String() string {
-	return fmt.Sprintf("at line: %d col: %d", p.line, p.col)
-}
-
-func pos(line, col int) position {
-	return position{line, col}
-}
-
-func (t token) String() string {
-	switch t.tt {
-	case INTEGER, DECIMAL, STRING, IDENTIFIER, TYPEIDENTIFIER:
-		return fmt.Sprintf("%s:%s ", t.tt, t.data)
-	default:
-		return fmt.Sprintf("%#v ", t.tt)
-	}
-
 }
 
 type tokenizer struct {
@@ -115,17 +63,49 @@ type tokenizer struct {
 	keepGoing bool
 }
 
-// Tokenize Converts ths content into an array of tokens
-// or returns an error if the content is not valid
+func (tt tokenType) String() string {
+	descriptions := [24]string{
+		`EOF`, `{`, `}`, `:`, `.`, `;`, `#`, `(`, `)`, `[`, `]`, `=`, `,`, "NEWLINE",
+		`num`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
+	}
+	vot := int(tt)
+	if vot > len(descriptions) {
+		return strconv.Itoa(vot)
+	} else {
+		return descriptions[tt]
+	}
+}
+
+func (p position) String() string {
+	return fmt.Sprintf("at line: %d col: %d", p.line, p.col)
+}
+
+func pos(line, col int) position {
+	return position{line, col}
+}
+
+func (t token) String() string {
+
+	switch t.tt {
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER, TYPEIDENTIFIER:
+		return fmt.Sprintf("%s:%s ", t.tt, t.data)
+	default:
+		return fmt.Sprintf("%v ", t.tt)
+	}
+}
+
+// Tokenize converts the content into an array of tokens or returns an error if the content is not valid
 func Tokenize(fileName string, content string) ([]token, error) {
 	t := &tokenizer{content, []token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
 	printTokens(tokens)
 	return tokens, e
 }
+
 func printTokens(tokens []token) {
 	ll := 1
-	fmt.Printf("Tokens: \n%d: ", ll)
+	logger.Println("Tokens ")
+	fmt.Printf("%d: ", ll )
 	for _, t := range tokens {
 		if ll != t.pos.line {
 			ll = t.pos.line
@@ -138,23 +118,23 @@ func printTokens(tokens []token) {
 }
 
 func (t *tokenizer) addToken(tt tokenType, data string) {
-
 	col := t.col
 	if tt != EOF {
 		col = t.col - len(data) + 1
 	}
 	t.tokens = append(t.tokens, token{pos(t.line, col), tt, data})
 }
+
 func (t *tokenizer) nextRune() rune {
 	r, w := utf8.DecodeRuneInString(t.content[t.pos:])
 	if r == utf8.RuneError {
-		// we're done tokenizing
 		t.keepGoing = false
 	}
 	t.pos += w
 	t.col++
 	return r
 }
+
 func (t *tokenizer) unReadRune(r rune) {
 	if r == utf8.RuneError {
 		t.keepGoing = false
@@ -163,6 +143,7 @@ func (t *tokenizer) unReadRune(r rune) {
 	}
 	t.col--
 }
+
 func (t *tokenizer) peek() rune {
 	r := t.nextRune()
 	t.unReadRune(r)
@@ -170,9 +151,10 @@ func (t *tokenizer) peek() rune {
 }
 
 func (t *tokenizer) skipComment() {
-	for r := t.nextRune(); r != '\n'; /*&& r != utf8.RuneError*/ r = t.nextRune() {
+	for r := t.nextRune(); r != '\n'; r = t.nextRune() {
 	}
 }
+
 func (t *tokenizer) skipMultilineComment() {
 	r := t.nextRune()
 	for {
@@ -183,10 +165,9 @@ func (t *tokenizer) skipMultilineComment() {
 		r = t.nextRune()
 	}
 }
+
 func lookupIdent(identifier string) tokenType {
 	runes := []rune(identifier)
-
-	// all upper?
 	allUpper := true
 	for _, r := range runes {
 		allUpper = allUpper && unicode.IsUpper(r)
@@ -194,7 +175,6 @@ func lookupIdent(identifier string) tokenType {
 	if allUpper {
 		return IDENTIFIER
 	}
-
 	if unicode.IsUpper(runes[0]) {
 		return TYPEIDENTIFIER
 	}
@@ -206,7 +186,6 @@ func lookupIdent(identifier string) tokenType {
 	case "return":
 		return RETURN
 	default:
-		// all nonLetter
 		allNonLetter := true
 		for _, r := range runes {
 			allNonLetter = allNonLetter && !unicode.IsLetter(r)
@@ -216,12 +195,9 @@ func lookupIdent(identifier string) tokenType {
 		}
 	}
 	return IDENTIFIER
-
 }
 
 func (t *tokenizer) addStringLiteral() {
-
-	// todo: scape literals e.g. "One \"word\"" -> One "word"
 	opening := t.nextRune()
 	r := t.nextRune()
 	builder := strings.Builder{}
@@ -237,20 +213,13 @@ func (t *tokenizer) addStringLiteral() {
 }
 
 func (t *tokenizer) isIdentifier(r rune) bool {
-	return !unicode.IsSpace(r) &&
-		unicode.IsPrint(r) &&
-		!unicode.IsDigit(r) &&
-		!strings.ContainsRune("{}[]#().,:;\"'`", r)
+	return !unicode.IsSpace(r) && unicode.IsPrint(r) && !unicode.IsDigit(r) && !strings.ContainsRune("{}[]#().,:;\"'`", r)
 }
 
 func (t *tokenizer) readIdentifier() string {
 	builder := strings.Builder{}
 	r := t.nextRune()
-	for (unicode.IsPrint(r) ||
-		unicode.IsDigit(r)) &&
-		!strings.ContainsRune("{}[]#().,:;\"'`", r) &&
-		!unicode.IsSpace(r) &&
-		r != utf8.RuneError {
+	for (unicode.IsPrint(r) || unicode.IsDigit(r)) && !strings.ContainsRune("{}[]#().,:;\"'`", r) && !unicode.IsSpace(r) && r != utf8.RuneError {
 		builder.WriteRune(r)
 		r = t.nextRune()
 	}
@@ -265,7 +234,7 @@ func (t *tokenizer) readNumber(positive bool) {
 		builder.WriteRune('-')
 	}
 	seenPoint := false
-	for /*r != utf8.RuneError &&*/ unicode.IsDigit(r) || r == '.' {
+	for unicode.IsDigit(r) || r == '.' {
 		if r == '.' && seenPoint {
 			break
 		}
@@ -286,13 +255,13 @@ func (t *tokenizer) readNumber(positive bool) {
 func (t *tokenizer) addNumber() {
 	t.readNumber(true)
 }
+
 func (t *tokenizer) addNegativeNumber() {
 	t.nextRune()
 	t.readNumber(false)
 }
 
 func (t *tokenizer) tokenize() ([]token, error) {
-
 	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
 		if r == '\n' {
 			t.line++

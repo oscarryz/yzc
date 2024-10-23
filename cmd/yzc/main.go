@@ -17,7 +17,7 @@ func main() {
 	fmt.Println()
 	// todo: handle nested source dirs, e.g. below `examples` is inside `.` so, ['.' './examples'] would duplicate
 	files := collectSourceFiles("examples/simple", "internal")
-	fmt.Printf("%v\n", files)
+	logger.Printf("%v\n", files)
 	internal.Build(files)
 
 }

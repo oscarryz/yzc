@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -13,7 +12,7 @@ func generateCode(a *program) error {
 	}
 	content := a.Bytes()
 	if err := os.WriteFile("generated/main.go", content, 0750); err != nil {
-		fmt.Printf("write error: %q", err)
+		logger.Printf("write error: %q", err)
 		return err
 	}
 	return nil
