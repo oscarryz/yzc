@@ -115,7 +115,9 @@ type tokenizer struct {
 	keepGoing bool
 }
 
-func tokenize(fileName string, content string) ([]token, error) {
+// Tokenize Converts ths content into an array of tokens
+// or returns an error if the content is not valid
+func Tokenize(fileName string, content string) ([]token, error) {
 	t := &tokenizer{content, []token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
 	printTokens(tokens)
@@ -136,7 +138,12 @@ func printTokens(tokens []token) {
 }
 
 func (t *tokenizer) addToken(tt tokenType, data string) {
-	t.tokens = append(t.tokens, token{pos(t.line, t.col), tt, data})
+
+	col := t.col
+	if tt != EOF {
+		col = t.col - len(data) + 1
+	}
+	t.tokens = append(t.tokens, token{pos(t.line, col), tt, data})
 }
 func (t *tokenizer) nextRune() rune {
 	r, w := utf8.DecodeRuneInString(t.content[t.pos:])
@@ -233,7 +240,7 @@ func (t *tokenizer) isIdentifier(r rune) bool {
 	return !unicode.IsSpace(r) &&
 		unicode.IsPrint(r) &&
 		!unicode.IsDigit(r) &&
-		!strings.ContainsRune("{}[]().,:;\"'`", r)
+		!strings.ContainsRune("{}[]#().,:;\"'`", r)
 }
 
 func (t *tokenizer) readIdentifier() string {
@@ -241,7 +248,7 @@ func (t *tokenizer) readIdentifier() string {
 	r := t.nextRune()
 	for (unicode.IsPrint(r) ||
 		unicode.IsDigit(r)) &&
-		!strings.ContainsRune("{}[]().,:;\"'`", r) &&
+		!strings.ContainsRune("{}[]#().,:;\"'`", r) &&
 		!unicode.IsSpace(r) &&
 		r != utf8.RuneError {
 		builder.WriteRune(r)

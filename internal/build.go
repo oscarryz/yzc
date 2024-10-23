@@ -36,7 +36,7 @@ func Build(input []SourceFile) {
 		content, e := os.ReadFile(sourceFile.path)
 
 		fileName, _ := strings.CutPrefix(sourceFile.path, sourceFile.root)
-		tokens, e := tokenize(fileName, string(content))
+		tokens, e := Tokenize(fileName, string(content))
 		a, e := parse(fileName, tokens)
 		if e != nil {
 			logger.Fatal(e)
