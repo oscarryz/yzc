@@ -32,6 +32,7 @@ func Build(input []SourceFile) {
 	// compile the code
 
 	for _, sourceFile := range input {
+		fmt.Println()
 		logger.Printf("Processing: %s\n", sourceFile.path)
 		content, e := os.ReadFile(sourceFile.path)
 

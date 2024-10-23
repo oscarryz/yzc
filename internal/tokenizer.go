@@ -135,6 +135,7 @@ func (t *tokenizer) nextRune() rune {
 	return r
 }
 
+// TODO: comments miss line position
 func (t *tokenizer) unReadRune(r rune) {
 	if r == utf8.RuneError {
 		t.keepGoing = false
