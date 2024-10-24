@@ -12,18 +12,18 @@ import (
 const (
 	EOF tokenType = iota
 	// delimiters
-	LBRACE
-	RBRACE
-	COLON
-	PERIOD
-	SEMICOLON
-	HASH
 	LPAREN
 	RPAREN
+	LBRACE
+	RBRACE
 	LBRACKET
 	RBRACKET
-	EQL
 	COMMA
+	COLON
+	SEMICOLON
+	PERIOD
+	EQL
+	HASH
 	NEWLINE
 
 	// literals
@@ -65,7 +65,7 @@ type tokenizer struct {
 
 func (tt tokenType) String() string {
 	descriptions := [24]string{
-		`EOF`, `{`, `}`, `:`, `.`, `;`, `#`, `(`, `)`, `[`, `]`, `=`, `,`, "NEWLINE",
+		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `#`, "NEWLINE",
 		`num`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
 	}
 	vot := int(tt)
@@ -77,7 +77,7 @@ func (tt tokenType) String() string {
 }
 
 func (p position) String() string {
-	return fmt.Sprintf("at line: %d col: %d", p.line, p.col)
+	return fmt.Sprintf("line: %d col: %d", p.line, p.col)
 }
 
 func pos(line, col int) position {
@@ -105,7 +105,7 @@ func Tokenize(fileName string, content string) ([]token, error) {
 func printTokens(tokens []token) {
 	ll := 1
 	logger.Println("Tokens ")
-	fmt.Printf("%d: ", ll )
+	fmt.Printf("%d: ", ll)
 	for _, t := range tokens {
 		if ll != t.pos.line {
 			ll = t.pos.line
@@ -119,8 +119,10 @@ func printTokens(tokens []token) {
 
 func (t *tokenizer) addToken(tt tokenType, data string) {
 	col := t.col
+
 	if tt != EOF {
-		col = t.col - len(data) + 1
+		len := utf8.RuneCountInString(data)
+		col = t.col - len + 1
 	}
 	t.tokens = append(t.tokens, token{pos(t.line, col), tt, data})
 }
@@ -135,7 +137,6 @@ func (t *tokenizer) nextRune() rune {
 	return r
 }
 
-// TODO: comments miss line position
 func (t *tokenizer) unReadRune(r rune) {
 	if r == utf8.RuneError {
 		t.keepGoing = false
@@ -152,18 +153,48 @@ func (t *tokenizer) peek() rune {
 }
 
 func (t *tokenizer) skipComment() {
-	for r := t.nextRune(); r != '\n'; r = t.nextRune() {
+	// read until new line or EOF
+	for {
+		r := t.nextRune()
+		if r == '\n' {
+			t.line++
+			t.col = 0
+			return
+		}
+		if r == utf8.RuneError {
+			t.keepGoing = false
+			return
+
+		}
 	}
+
+	//for r := t.nextRune(); r != '\n'; r = t.nextRune() {
+	//}
+	//t.line++
+	//t.col = 0
 }
 
 func (t *tokenizer) skipMultilineComment() {
 	r := t.nextRune()
+	if r == '\n' {
+		t.line++
+		t.col = 0
+	}
+
 	for {
 		if r == '*' && t.peek() == '/' {
 			t.nextRune()
+			if r == '\n' {
+				t.line++
+				t.col = 0
+			}
 			return
 		}
 		r = t.nextRune()
+		if r == '\n' {
+			t.line++
+			t.col = 0
+		}
 	}
 }
 
@@ -200,17 +231,38 @@ func lookupIdent(identifier string) tokenType {
 
 func (t *tokenizer) addStringLiteral() {
 	opening := t.nextRune()
+	pos := position{t.line, t.col}
 	r := t.nextRune()
 	builder := strings.Builder{}
 	for r != opening {
-		builder.WriteRune(r)
+		if r == '\\' {
+			// Handle escape sequences
+			next := t.nextRune()
+			switch next {
+			case 'n':
+				builder.WriteRune('\n')
+			case 't':
+				builder.WriteRune('\t')
+			case '\\':
+				builder.WriteRune('\\')
+			case '"':
+				builder.WriteRune('"')
+			case '\'':
+				builder.WriteRune('\'')
+			default:
+				builder.WriteRune('\\')
+				builder.WriteRune(next)
+			}
+		} else {
+			builder.WriteRune(r)
+		}
 		if r == '\n' {
 			t.line++
 			t.col = 0
 		}
 		r = t.nextRune()
 	}
-	t.addToken(STRING, builder.String())
+	t.tokens = append(t.tokens, token{pos, STRING, builder.String()})
 }
 
 func (t *tokenizer) isIdentifier(r rune) bool {
@@ -296,23 +348,26 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			t.addToken(COMMA, ",")
 		case '#':
 			t.addToken(HASH, "#")
-		case '/':
-			if t.peek() == '/' {
-				t.nextRune()
-				t.skipComment()
-			} else if t.peek() == '*' {
-				t.nextRune()
-				t.skipMultilineComment()
-			}
-		case '-':
-			if unicode.IsDigit(t.peek()) {
-				t.unReadRune(r)
-				t.addNegativeNumber()
-			}
 		case '"', '`', '\'':
 			t.unReadRune(r)
 			t.addStringLiteral()
 		default:
+			if r == '/' {
+				if t.peek() == '/' {
+					t.nextRune()
+					t.skipComment()
+					continue
+				} else if t.peek() == '*' {
+					t.nextRune()
+					t.skipMultilineComment()
+					continue
+				}
+			}
+			if r == '-' && unicode.IsDigit(t.peek()) {
+				t.unReadRune(r)
+				t.addNegativeNumber()
+				break
+			}
 			if unicode.IsDigit(r) {
 				t.unReadRune(r)
 				t.addNumber()
