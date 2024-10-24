@@ -7,8 +7,7 @@
 
 program ::=  block_body
 
-block_body 
-  ::= expression+ | statement*
+block_body ::= (expression | statement) ("," (expression | statement))* | ""
 
 
 //////////////////////////////////
@@ -39,24 +38,24 @@ block_invocation
 method_invocation
   ::= member_access invocation
 
-// ( 1 2 )
+// ( 1, 2 )
 parenthesized_expressions 
-  ::= "(" expression+ ")"
+  ::= "(" expression | ("," expression)* ")"
 
-// Point( 1 2 )
+// Point( 1, 2 )
 type_instantiation
   ::= type parenthesis_invocation
 
-// ( arg1 arg2 ) | ( named_arg1: arg1 named_arg2: arg2 )
+// ( arg1, arg2 ) | ( named_arg1: arg1, named_arg2: arg2 )
 parenthesis_invocation
   ::= "(" ")"
-    | "(" (expression)+ ")"
-        // (x: 1 y: 2)
-    | "(" (variable ":" expression)* ")"
+  | "(" expression ("," expression)* ")"
+  | "(" expression ":" expression ("," expression ":" expression)* ")"
 
-// + 1
+
+// + 1 | << 1 , 2
 non_parenthesis_invocation
-   ::= nonword_identifier (expression)+
+   ::= nonword_identifier expression ("," expression)*
 
 invocation
   ::= parenthesis_invocation
@@ -75,7 +74,10 @@ array_write
   ::= array_instance "[" expression "]" "=" expression
 
 array_instance
-  ::= variable | array_literal
+  ::= variable | array_literal | array_expression
+
+array_expression
+   ::= "" // any expression that results in an array reference
 
 // Dictionary access
 dictionary_access
@@ -108,7 +110,7 @@ literal
     | array_literal
     | dictionary_literal
 
-// { 1 s: "hi"  }
+// { 1,  s: "hi"  }
 block_literal
   ::= "{" block_body "}"
 

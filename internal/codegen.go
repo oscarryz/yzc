@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func generateCode(a *program) error {
+func GenerateCode(a *program) error {
 	d := "generated/"
 	err := os.MkdirAll(d, 0750)
 	if err != nil {
