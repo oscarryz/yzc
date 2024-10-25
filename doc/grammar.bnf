@@ -5,10 +5,9 @@
 // () Grouping
 // |  Or
 
-program ::=  block_body
+program ::= block_body
 
 block_body ::= (expression | statement) ("," (expression | statement))* | ""
-
 
 //////////////////////////////////
 // Expressions
@@ -17,7 +16,6 @@ expression
   ::= block_invocation
     | method_invocation
     | parenthesized_expressions
-//    | literal_non_word_invocation
     | type_instantiation
     | array_access
     | dictionary_access
@@ -25,37 +23,34 @@ expression
     | literal
     | variable
     | assignment
-
+    | variable_short_definition
 
 // Invocation
 // b()
 // foo.bar()()
 // foo ++ bar ()
-block_invocation
-  ::=  expression invocation
+block_invocation ::= expression invocation
 
 // a.b(1)
-method_invocation
-  ::= member_access invocation
+method_invocation ::= member_access invocation
 
-// ( 1, 2 )
-parenthesized_expressions 
-  ::= "(" expression | ("," expression)* ")"
+// (1, 2)
+parenthesized_expressions ::= "(" (expression ("," expression)*)? ")"
 
-// Point( 1, 2 )
-type_instantiation
-  ::= type parenthesis_invocation
+// Point(1, 2)
+type_instantiation ::= type parenthesis_invocation
 
-// ( arg1, arg2 ) | ( named_arg1: arg1, named_arg2: arg2 )
+// (arg1, arg2)
+// (named_arg1: arg1, named_arg2: arg2)
 parenthesis_invocation
   ::= "(" ")"
   | "(" expression ("," expression)* ")"
   | "(" expression ":" expression ("," expression ":" expression)* ")"
 
-
-// + 1 | << 1 , 2
-non_parenthesis_invocation
-   ::= nonword_identifier expression ("," expression)*
+// + 1
+// << 1, 2, f()
+// no named parameter invocation without parenthesis
+non_parenthesis_invocation ::= non_word_identifier expression ("," expression)*
 
 invocation
   ::= parenthesis_invocation
@@ -65,19 +60,15 @@ invocation
 array_access
   ::= array_read | array_write
 
-// a["key"]
-array_read
-  ::= array_instance "[" expression "]"
+// a[0]
+array_read ::= array_instance "[" index_expression "]"
 
-// a["key"] = "value"
-array_write
-  ::= array_instance "[" expression "]" "=" expression
+// a[0] = "value"
+array_write ::= array_instance "[" index_expression "]" "=" expression
 
-array_instance
-  ::= variable | array_literal | array_expression
+index_expression ::= expression // any expression that results in an Int value
 
-array_expression
-   ::= "" // any expression that results in an array reference
+array_instance ::= variable | array_literal | expression
 
 // Dictionary access
 dictionary_access
@@ -85,21 +76,15 @@ dictionary_access
     | dictionary_write
 
 // d["key"]
-dictionary_read
- ::= dictionary_instance "[" expression "]"
+dictionary_read ::= dictionary_instance "[" expression "]"
 
 // d["key":"new_value"]
-dictionary_write
- ::= dictionary_instance  "[" expression ":" expression "]"
+dictionary_write ::= dictionary_instance "[" expression ":" expression "]"
 
-dictionary_instance
-  ::= variable
-    | dictionary_literal
+dictionary_instance ::= variable | dictionary_literal | expression
 
-// member access
-member_access
-  ::= expression  ("." variable)+
-
+// Member access
+member_access ::= expression ("." variable)+
 
 // Literals
 literal
@@ -110,64 +95,68 @@ literal
     | array_literal
     | dictionary_literal
 
-// { 1,  s: "hi"  }
-block_literal
-  ::= "{" block_body "}"
+// {1, s: "hi"}
+block_literal ::= "{" block_body "}"
 
-// - 2
-number_literal
-  ::= ["-"]('0-9')+
+// -2
+number_literal ::= ["-"]('0-9')+
 
-// - 1.2
-decimal_literal
-  ::= ["-"]('0-9')+ "." ('0-9')+
+// -1.2
+decimal_literal ::= ["-"]('0-9')+ "." ('0-9')+
 
 // "double quote" 'single quote' `backtick quote`
 string_literal
   ::= "\"" PRINTABLE* "\""
-    | "'" PRINTABLE*  "'"
+    | "'" PRINTABLE* "'"
     | "`" PRINTABLE* "`"
-string
-  ::= string_literal
 
-
+// [] String
 // ["a" "b" "c"]
 array_literal
-  ::= "[" expression* "]" //expressions of the same type
-  | "[" "]"  // empty if type is know at declaration
-  | "[" "]" type // empty array of given type for shorthand
+  ::= "[" "]" type // empty array of given type for shorthand
+  | "[" expression* "]" //expressions of the same type
 
+// [String] Int
 // ["k1": "v1" "k2":"v2]
 dictionary_literal
-  ::= "[" ( expression ":" expression )* "]" // expressions don't have to be the same type
-  | "[" ":" "]" // empty dictionary of if types are knows at declaration
-  | "[" type "]" type // empty dictionary of given types for shorthand
+  ::= "[" type "]" type // empty dictionary of given types
+  | "[" (expression ":" expression)* "]" // expressions don't have to be the same type
 
-assignment
-  ::=
-    variable+ "=" expression+
+// a, b, c = 1, 2, 3
+assignment ::= variable ("," variable)* "=" expression ("," expression)*
 
-variable::= variable_identifier
+variable ::= variable_identifier
 
+// Only one variable can be defined to be an expression.
+// That in turn can be used to define other but they all
+// have the same value
+// a: 1  // defines a of type Int and value 1
+// b: dict["key":"value"] //defines b as a dictionary with a key of "key:value"
+// c: d: 1  // defines c and d of type Int and value 1
+variable_short_definition ::= variable ":" expression
 
 //////////////////////////////////
 // Statements
 //////////////////////////////////
 statement
-    ::= [string] variable_definition
-      | [string] variable_declaration
-      | [string] new_type_declaration
-      | [string] new_type_definition
-      | "return" expression*
-      | "continue"
-      | "break"
+  ::= multiple_variable_definition
+    | [string] variable_definition
+    | [string] variable_declaration
+    | [string] new_type_declaration
+    | [string] new_type_definition
+    | "return" expression*
+    | "continue"
+    | "break"
 
+// a, b, c : 1, 2, 3
+// a Int, b Int, c Int = 1, 2, 3
+// a Int, b Int, c Int = some_function()
+multiple_variable_definition
+  ::= variable ("," variable) ":" expression ("," expression)*
+  | variable_declaration ("," variable_declaration)* "=" expression ("," expression)*
 
-// a: 1
-// b: dict["key"] = "suffix"
-variable_definition
-    ::= variable+ ":" (expression)+
-    |   variable type "=" expression
+// a Int
+variable_definition ::= variable_declaration "=" expression
 
 // a Int
 // b
@@ -175,50 +164,45 @@ variable_definition
 // c [String:Int]
 // d ()
 // e (f A)
-// g (String,String)
-variable_declaration
-  ::= variable type
-    | variable array_declaration
-    | variable dictionary_declaration
-    | variable block_signature
+// g (String, String)
+variable_declaration ::= variable type
 
-// ( A , x Int, String, String, e E )
+// #(T, x Int, String, String, e E)
 block_signature
-  ::= "(" type_member? ")"
-    | "(" type_member ("," type_member )* ")"
+  ::= "#" "(" ")"
+  | "#" "(" type_member ("," type_member)* ")"
 
-// Point ( A , x Int, String, String, e E )
+// Point (A, x Int, String, String, e E)
 new_type_declaration ::= type_identifier block_signature [ "=" block_literal ]
 
 type_member
   ::= variable type ["=" default_value]
-    | type
-    | variable ":" default_value
+  | generic_type_identifier
+  | variable ":" default_value
 
-default_value
-  ::= expression
+default_value ::= expression
+
+type
+  ::= type_identifier
+  | array_type
+  | dictionary_type
+  | block_signature
 
 // [String]
-array_declaration
-  ::= "[" type "]"
+array_type ::= "[" type "]"
 
-// [String : Int]
-dictionary_declaration
-  ::= "[" type ":" type "]"
+// [String: Int]
+dictionary_type ::= "[" type ":" type "]"
 
-// Definitions
-// Point : { 1 s:"hi" }
-new_type_definition
-  ::= type_identifier ":" block_literal
-
-
-
+// New type
+// Point: {1, s: "hi"}
+new_type_definition ::= type_identifier ":" block_literal
 
 // Identifiers
-type ::= generic_type_identifier | type_identifier
 generic_type_identifier ::= UPPER_CASE // single uppercase letter
-type_identifier ::=  UPPER_CASE (variable_identifier)*
+type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
-nonword_identifier ::= NOT A CHARACTER+// as defined by unicode, minus reserved punct
+non_word_identifier ::= NOT A CHARACTER+ // as defined by unicode, minus reserved punct
+
 //noinspection BnfUnusedRule
-reserved_char ::= "{"|"}"|"["|"]"|":"|"//"|","|"."
+reserved_char ::= "#" | "(" | ")" | "{" | "}" | "[" | "]" | ":" | ";" | "," | "."

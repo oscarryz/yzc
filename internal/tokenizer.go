@@ -167,11 +167,6 @@ func (t *tokenizer) skipComment() {
 
 		}
 	}
-
-	//for r := t.nextRune(); r != '\n'; r = t.nextRune() {
-	//}
-	//t.line++
-	//t.col = 0
 }
 
 func (t *tokenizer) skipMultilineComment() {
