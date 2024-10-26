@@ -195,8 +195,10 @@ array_type ::= "[" type "]"
 dictionary_type ::= "[" type ":" type "]"
 
 // New type
-// Point: {1, s: "hi"}
+// Point: {x: 1, y: 2}
+// Point #(x Int, y Int) {}
 new_type_definition ::= type_identifier ":" block_literal
+| type_identifier block_signature block_body
 
 // Identifiers
 generic_type_identifier ::= UPPER_CASE // single uppercase letter

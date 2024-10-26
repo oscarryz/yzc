@@ -10,7 +10,6 @@ type parser struct {
 	currentToken int
 	prog         *program
 }
-
 func Parse(fileName string, tokens []token) (*program, error) {
 	p := newParser(fileName, tokens)
 	return p.parse()
@@ -53,7 +52,7 @@ func (p *parser) program() (*program, error) {
 	return &program{body}, err
 }
 
-// block_body::= expression+ | statement*
+// block_body ::= (expression | statement) ("," (expression | statement))* | ""
 func (p *parser) blockBody() (*blockBody, error) {
 	bb := &blockBody{
 		[]expression{},

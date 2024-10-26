@@ -1,56 +1,43 @@
 package internal
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-var l = 1
-
-func tok(tt tokenType) token {
-	l++
-	return token{
-		pos:  position{l, 1},
-		tt:   tt,
-		data: "1i",
-	}
-}
-func Test_parser_exploreExpression(t *testing.T) {
+func TestParser_Parse(t *testing.T) {
 	tests := []struct {
-		name   string
+		name    string
+		fileName string
 		tokens []token
-		want   ruleType
+		want    *program
+		wantErr bool
 	}{
 		{
-			"Int literal",
-			[]token{tok(INTEGER), tok(EOF)},
-			INTEGER_EXPR,
+			name: "Empty body",
+			fileName: "empty.yz",
+			tokens: []token{
+				{pos(1, 5), EOF, "EOF"},
+			},
+			want: &program{
+				&blockBody{
+					expressions: []expression{
+						&empty{},
+					},
+				},
+			},
 		},
-		{
-			"Closing brace",
-			[]token{tok(RBRACE), tok(EOF)},
-			ILLEGAL,
-		},
-		{
-			"Input:\" 1 }\" will return Integer Expr as it stops i the first `1` and shouldn't process the `}`",
-			[]token{tok(INTEGER), tok(RBRACE), tok(EOF)},
-			INTEGER_EXPR,
-		},
-		{
-			"Parenthesis expression",
-			[]token{tok(LPAREN), tok(INTEGER), tok(RPAREN), tok(EOF), tok(RBRACE)},
-			PARENTHESIS_EXPR,
-		},
-		//{
-		//	"Block Body",
-		//	[]token{tok(LBRACE), tok(INTEGER), tok(RBRACE), tok(EOF)},
-		//	true,
-		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &parser{
-				tokens: tt.tokens,
+			got, err := Parse(tt.fileName, tt.tokens)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
-			if got := p.exploreExpression(); got != tt.want {
-				t.Errorf("exploreExpression() = %v, want %v", got, tt.want)
+			// compare go recursively
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Parse() = %v\n want %v", got, tt.want)
 			}
 		})
 	}

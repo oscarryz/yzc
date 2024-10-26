@@ -1,3 +1,17 @@
+## Need to modify the concept of `program`
+
+Currently, in the grammar a program has a blockbody and the blockbody has a list of expressions of statements. 
+
+What I need is to define that a program is actually a block of code (like everything else)
+
+So, an empty file `hi.yz` would define the `boc` : `hi #() {}` that is a block named `hi` with and empty body.
+
+If a file has a main method then a full binary program would be the result, otherwise the compilation would only 
+cache the library? 
+
+I need to modify the grammar to reflect this.
+
+
 ## `=` as operator or as part of an identifier
 
 The `=` token be the assigment operator and also can be part of an identifier.

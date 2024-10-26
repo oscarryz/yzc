@@ -1,0 +1,4 @@
+main: {
+    n : 1
+    print("Hello, World! `n`st time") // Hello, World! 1st time
+}
