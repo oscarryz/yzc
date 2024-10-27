@@ -10,21 +10,19 @@ func TestParser_Parse(t *testing.T) {
 		name    string
 		fileName string
 		tokens []token
-		want    *program
+		want    *boc
 		wantErr bool
 	}{
 		{
-			name: "Empty body",
-			fileName: "empty.yz",
+			name: "simple",
+			fileName: "simple.yz",
 			tokens: []token{
-				{pos(1, 5), EOF, "EOF"},
+				{pos(0, 0), EOF, "EOF"},
 			},
-			want: &program{
-				&blockBody{
-					expressions: []expression{
-						&empty{},
-					},
-				},
+			want: &boc{
+				name: "simple",
+				bocType: nil,
+				blockBody: nil,
 			},
 		},
 	}

@@ -1,14 +1,23 @@
 package internal
 
 type (
-	program struct {
+	boc struct {
+		name 	string
+		bocType 	*blockType
 		blockBody *blockBody
 	}
+
 	expression interface {
 		value() string
 	}
 	statement interface {
 		value() string
+	}
+	blockType struct {
+		pos position
+		tt  tokenType
+		val string
+
 	}
 	blockBody struct {
 		expressions []expression
@@ -29,3 +38,7 @@ type (
 
 	empty struct{}
 )
+
+func (boc *boc) value() string {
+	return boc.name
+}

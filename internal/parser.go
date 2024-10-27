@@ -2,15 +2,16 @@ package internal
 
 import (
 	"fmt"
+	"strings"
 )
 
 type parser struct {
 	fileName     string
 	tokens       []token
 	currentToken int
-	prog         *program
+	prog         *boc
 }
-func Parse(fileName string, tokens []token) (*program, error) {
+func Parse(fileName string, tokens []token) (*boc, error) {
 	p := newParser(fileName, tokens)
 	return p.parse()
 }
@@ -42,14 +43,41 @@ func (p *parser) tokenPlus(i int) token {
 	return p.tokens[p.currentToken+i]
 }
 
-func (p *parser) parse() (*program, error) {
-	return p.program()
+func (p *parser) parse() (*boc, error) {
+	// splits the file name into directories and file name without extension
+	parts := strings.Split(p.fileName, "/")
+	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
+
+	leaf, e := p.boc()
+	if e != nil {
+		return nil, e
+	}
+	leaf.name = fileNameWithoutExtension
+	// Creates the parent bocs
+	// for a/b/c.yz will creates
+	// boc{ name: "a", bocType: nil, blockBody:
+	//		boc: { name: "b", bocType: nil, blockBody:
+	//			boc: { name: "c", bocType: nil, blockBody: nil } } }
+	for i := len(parts) - 2; i >= 0; i-- {
+		leaf = &boc{
+			name:  parts[i],
+			bocType: nil,
+			blockBody: &blockBody{
+				expressions: []expression{leaf},
+			},
+		}
+	}
+
+	return leaf, nil
 }
 
-// program ::= block_body
-func (p *parser) program() (*program, error) {
-	body, err := p.blockBody()
-	return &program{body}, err
+// boc ::= block_body
+func (p *parser) boc() (*boc, error) {
+	bb, e := p.blockBody()
+	if e != nil {
+		return nil, e
+	}
+	return &boc{ "", nil, bb }, nil
 }
 
 // block_body ::= (expression | statement) ("," (expression | statement))* | ""
@@ -95,14 +123,14 @@ func (p *parser) consume() {
 /*
 Some utility functions below for debugging
 */
-func (a *program) Bytes() []byte {
+func (a *boc) Bytes() []byte {
 	return []byte(`package main
 func main() {
     print("Hello world (from parser)")
 }`)
 }
 
-func (p *program) String() string {
+func (p *boc) String() string {
 	return fmt.Sprintf("blockBody: %#v", p.blockBody)
 }
 

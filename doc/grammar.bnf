@@ -5,7 +5,8 @@
 // () Grouping
 // |  Or
 
-program ::= block_body
+// A boc is a block of code
+boc ::= block_body
 
 block_body ::= (expression | statement) ("," (expression | statement))* | ""
 
