@@ -1,7 +1,10 @@
 ## Need to separate source path from filename
 
 So if source path is `./example` the file `./example/foo.yz` should create the block `foo` and not `example.foo` while 
-`./example/foo/bar.yz` does create `foo.bar` 
+`./example/foo/bar.yz` does create `foo.bar`
+
+Partially fixed. I need to consider the sub path has the root as prefix `[. ./examples]`
+
 
 
 ## `=` as operator or as part of an identifier

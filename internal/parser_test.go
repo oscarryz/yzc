@@ -14,15 +14,26 @@ func TestParser_Parse(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "simple",
-			fileName: "simple.yz",
+			name: "Nested directory",
+			fileName: "parent/simple.yz",
 			tokens: []token{
 				{pos(0, 0), EOF, "EOF"},
 			},
 			want: &boc{
-				name: "simple",
+				name: "parent",
 				bocType: nil,
-				blockBody: nil,
+				blockBody: &blockBody{
+					expressions:[] expression {
+						&boc{
+							name: "simple",
+							blockBody: &blockBody{
+								expressions: []expression{},
+								statements:  []statement{},
+							},
+						},
+					},
+					statements: [] statement{},
+				},
 			},
 		},
 	}

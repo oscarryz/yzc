@@ -63,7 +63,9 @@ func (p *parser) parse() (*boc, error) {
 			name:  parts[i],
 			bocType: nil,
 			blockBody: &blockBody{
-				expressions: []expression{leaf},
+				 []expression{leaf},
+				[]statement{},
+
 			},
 		}
 	}

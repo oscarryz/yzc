@@ -27,16 +27,27 @@ func main() {
 func collectSourceFiles(sourceRoots ...string) []internal.SourceFile {
 	logger.Printf("Source directories: %v\n", sourceRoots)
 	var files []internal.SourceFile
-	seen := make(map[string]bool)
+	subdirsSeen := make(map[string]bool)
 	for _, sourceRoot := range sourceRoots {
 		logger.Printf("Walking: %s", sourceRoot)
 		_ = filepath.WalkDir(sourceRoot, func(path string, info fs.DirEntry, err error) error {
 
-			if strings.HasSuffix(path, sourceSuffix) && !info.IsDir() {
-				if seen[path] == false {
-					seen[path] = true
-					files = append(files, internal.NewSourceFile(sourceRoot, path))
+
+			if info == nil {
+				logger.Printf("WARNING: Skipping invalid path:  %s\n", path)
+				return filepath.SkipDir
+			}
+			if info.IsDir() {
+				if !subdirsSeen[path] {
+					subdirsSeen[path] = true
+				} else {
+					logger.Printf("WARNING: Skipping already seen directory: %s\n", path)
+					return filepath.SkipDir
 				}
+			}
+
+			if strings.HasSuffix(path, sourceSuffix) && !info.IsDir() {
+					files = append(files, internal.NewSourceFile(sourceRoot, path))
 			}
 			return nil
 		})
