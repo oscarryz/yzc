@@ -9,8 +9,8 @@ import (
 )
 
 type SourceFile struct {
-	root string
-	path string
+	Root string
+	Path string
 }
 
 func NewSourceFile(root string, path string) SourceFile {
@@ -33,10 +33,10 @@ func Build(input []SourceFile) {
 
 	for _, sourceFile := range input {
 		fmt.Println()
-		logger.Printf("Processing: %s\n", sourceFile.path)
-		content, e := os.ReadFile(sourceFile.path)
+		logger.Printf("Processing: %s\n", sourceFile.Path)
+		content, e := os.ReadFile(sourceFile.Path)
 
-		fileName, _ := strings.CutPrefix(sourceFile.path, sourceFile.root)
+		fileName, _ := strings.CutPrefix(sourceFile.Path, sourceFile.Root)
 		tokens, e := Tokenize(fileName, string(content))
 		a, e := Parse(fileName, tokens)
 		if e != nil {
