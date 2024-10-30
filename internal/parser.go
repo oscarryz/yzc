@@ -133,7 +133,7 @@ func main() {
 }
 
 func (p *boc) String() string {
-	return fmt.Sprintf("blockBody: %#v", p.blockBody)
+	return p.value()
 }
 
 func (bb *blockBody) String() string {

@@ -1,6 +1,9 @@
 package internal
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type (
 	boc struct {
@@ -40,22 +43,26 @@ type (
 	empty struct{}
 )
 
-func (b *boc) Print(indent string) {
-	fmt.Printf("%s%s\n", indent, b.name)
+func (b *boc) Print(indent string) string {
+	// string buffer
+	var builder strings.Builder
+	builder.WriteString(fmt.Sprintf("%s%s\n", indent, b.name))
 	if b.bocType != nil {
-		fmt.Printf("%s  bocType: %s\n", indent, b.bocType.val)
+		builder.WriteString(fmt.Sprintf("%s  bocType: %s\n", indent, b.bocType.val))
 	}
 	if b.blockBody != nil {
-		fmt.Printf("%s  blockBody:\n", indent)
+		builder.WriteString(fmt.Sprintf("%s  blockBody:\n", indent))
 		for _, expr := range b.blockBody.expressions {
-			fmt.Printf("%s    expression: %s\n", indent, expr.value())
+			builder.WriteString(fmt.Sprintf("%s    expression: %s\n", indent, expr.value()))
 		}
 		for _, stmt := range b.blockBody.statements {
-			fmt.Printf("%s    statement: %s\n", indent, stmt.value())
+
+			builder.WriteString(fmt.Sprintf("%s    statement: %s\n", indent, stmt.value()))
 		}
 	}
+	return builder.String()
 }
 
 func (boc *boc) value() string {
-	return boc.name
+	return boc.Print("")
 }

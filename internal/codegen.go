@@ -6,7 +6,7 @@ import (
 )
 
 func GenerateCode(a *boc) error {
-	a.Print("")
+	logger.Printf("Generating code for:\n %s", a)
 	d := "generated/"
 	err := os.MkdirAll(d, 0750)
 	if err != nil {
