@@ -1,10 +1,28 @@
-## Need to separate source path from filename
+## How to handle duplicate definitions in different directories
 
-So if source path is `./example` the file `./example/foo.yz` should create the block `foo` and not `example.foo` while 
-`./example/foo/bar.yz` does create `foo.bar`
+If the source path is: `[src, lib]` 
 
-Partially fixed. I need to consider the sub path has the root as prefix `[. ./examples]`
+The following file structure: 
+```
+   src/
+        foo/
+            bar.yz
+    lib/
+        foo/
+            bar.yz
+```
+Would create the valid bocs `foo.bar` in the `src` directory and `foo.bar` in the `lib` directory.
+Should this be allowed? Should the compiler throw an error? Should the compiler allow it and use the first one found?. 
+Possible uses cases:
 
+1. The user wants to augment the functionality of a library
+
+In this case we would merge the definitions to create a single `foo.bar` boc. We would probably need to define this 
+in the project configuration file e.g. 
+```
+src_path: [src, lib]
+merge_src_path: true
+```
 
 
 ## `=` as operator or as part of an identifier
