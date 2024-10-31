@@ -1,31 +1,9 @@
-## How to handle duplicate definitions in different directories
+## Pass build options to the compiler
 
-If the source path is: `[src, lib]` 
+We can keep the generated source files or discard them. 
+At this moment we'll keep them for debugging purposes, but eventually we will need and option to discard them.
 
-The following file structure: 
-```
-   src/
-        foo/
-            bar.yz
-    lib/
-        foo/
-            bar.yz
-```
-Would create the valid bocs `foo.bar` in the `src` directory and `foo.bar` in the `lib` directory.
-Should this be allowed? Should the compiler throw an error? Should the compiler allow it and use the first one found?. 
-Possible uses cases:
-
-1. The user wants to augment the functionality of a library
-
-In this case we would merge the definitions to create a single `foo.bar` boc. We would probably need to define this 
-in the project configuration file e.g. 
-```
-src_path: [src, lib]
-merge_src_path: true
-```
-
-
-## `=` as operator or as part of an identifier
+## Think about `=` as operator or as part of an identifier
 
 The `=` token be the assigment operator and also can be part of an identifier.
 

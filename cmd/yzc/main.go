@@ -18,12 +18,13 @@ func main() {
 	//files := collectSourceFiles("phantom")
 	//files := collectSourceFiles("README.md")
 	//files := collectSourceFiles( ".", "examples/simple")
-	files := collectSourceFiles(".")
+	//files := collectSourceFiles(".")
+	files := collectSourceFiles("examples/simple")
 	logger.Printf("Collecting source files:\n")
 	for _, f := range files {
 		logger.Printf("%v", f)
 	}
-	internal.Build(files)
+	internal.Build(files, false)
 
 }
 
@@ -72,9 +73,9 @@ func collectSourceFiles(sourceRoots ...string) []internal.SourceFile {
 					path = path[1:]
 				}
 
-				file := internal.NewSourceFile(currentRoot, path)
+				file := internal.NewSourceFile(currentRoot, path, afp)
 				if seen[afp] == (internal.SourceFile{}) {
-					seen[afp] = internal.NewSourceFile(currentRoot, path)
+					seen[afp] = internal.NewSourceFile(currentRoot, path, afp)
 				} else {
 					first := seen[afp]
 					return fmt.Errorf("Duplicate source files\n%s (source directory:\"%s\") and %s (souce directory:\"%s\") are the same file: %s\n"+

@@ -11,6 +11,7 @@ type parser struct {
 	currentToken int
 	prog         *boc
 }
+
 func Parse(fileName string, tokens []token) (*boc, error) {
 	p := newParser(fileName, tokens)
 	return p.parse()
@@ -44,7 +45,7 @@ func (p *parser) tokenPlus(i int) token {
 }
 
 func (p *parser) parse() (*boc, error) {
-	// splits the file name into directories and file name without extension
+	// splits the file Name into directories and file Name without extension
 	parts := strings.Split(p.fileName, "/")
 	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
 
@@ -52,20 +53,19 @@ func (p *parser) parse() (*boc, error) {
 	if e != nil {
 		return nil, e
 	}
-	leaf.name = fileNameWithoutExtension
+	leaf.Name = fileNameWithoutExtension
 	// Creates the parent bocs
 	// for a/b/c.yz will creates
-	// boc{ name: "a", bocType: nil, blockBody:
-	//		boc: { name: "b", bocType: nil, blockBody:
-	//			boc: { name: "c", bocType: nil, blockBody: nil } } }
+	// boc{ Name: "a", bocType: nil, blockBody:
+	//		boc: { Name: "b", bocType: nil, blockBody:
+	//			boc: { Name: "c", bocType: nil, blockBody: nil } } }
 	for i := len(parts) - 2; i >= 0; i-- {
 		leaf = &boc{
-			name:  parts[i],
+			Name:    parts[i],
 			bocType: nil,
 			blockBody: &blockBody{
-				 []expression{leaf},
+				[]expression{leaf},
 				[]statement{},
-
 			},
 		}
 	}
@@ -79,7 +79,7 @@ func (p *parser) boc() (*boc, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &boc{ "", nil, bb }, nil
+	return &boc{"", nil, bb}, nil
 }
 
 // block_body ::= (expression | statement) ("," (expression | statement))* | ""
@@ -116,20 +116,8 @@ func (p *parser) syntaxError(message string) error {
 	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
 }
 
-
-
 func (p *parser) consume() {
 	p.currentToken++
-}
-
-/*
-Some utility functions below for debugging
-*/
-func (a *boc) Bytes() []byte {
-	return []byte(`package main
-func main() {
-    print("Hello world (from parser)")
-}`)
 }
 
 func (p *boc) String() string {

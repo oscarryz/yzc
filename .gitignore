@@ -22,5 +22,6 @@ yzc
 go.work
 
 generated/
+target/
 .idea/
 *.iml

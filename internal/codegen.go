@@ -3,20 +3,36 @@ package internal
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
+	"text/template"
 )
 
-func GenerateCode(a *boc) error {
-	logger.Printf("Generating code for:\n %s", a)
-	d := "generated/"
-	err := os.MkdirAll(d, 0750)
-	if err != nil {
-		logger.Fatalf("%q", err)
-	}
-	content := a.Bytes()
-	fileName := fmt.Sprintf("%s%s.go", d, a.name)
+func GenerateCode(tempDir string, boc *boc) (string, error) {
+	content := Bytes(boc)
+	bocGoName := fmt.Sprintf("%s.go", boc.Name)
+	fileName := filepath.Join(tempDir, bocGoName)
 	if err := os.WriteFile(fileName, content, 0750); err != nil {
-		logger.Printf("write error: %q", err)
-		return err
+		logger.Fatalf("write error: %q", err)
+		return "", err
 	}
-	return nil
+	return fileName, nil
+}
+
+func Bytes(boc *boc) []byte {
+	goSourceTemplate, err := template.New("main").Parse(
+		`package main
+
+func main() {
+	print("Hello {{.Name}} code generator")
+}`)
+	if err != nil {
+		return nil
+	}
+	var sb strings.Builder
+	err = goSourceTemplate.Execute(&sb, boc)
+	if err != nil {
+		return nil
+	}
+	return []byte(sb.String())
 }

@@ -5,23 +5,27 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 type SourceFile struct {
-	Root string
-	Path string
+	Root         string
+	Path         string
+	AbsolutePath string
 }
 
-func NewSourceFile(root string, path string) SourceFile {
+func NewSourceFile(root, path, absolutePath string) SourceFile {
 	return SourceFile{
-		root, path,
+		root, path, absolutePath,
 	}
 }
 
 var logger = log.Default()
 
-func Build(input []SourceFile) {
+const (
+	target_dir = "target/"
+)
+
+func Build(input []SourceFile, keepGeneratedSource bool) {
 	// read source file
 	// tokenize
 	// create ast
@@ -31,31 +35,52 @@ func Build(input []SourceFile) {
 	// generate code
 	// compile the code
 
+	generatedDir := ""
+	if keepGeneratedSource {
+		generatedDir = "generated"
+		_ = os.MkdirAll(generatedDir, 0750)
+	}
+
+	tmpDir, e := os.MkdirTemp(generatedDir, "yzc_generated_go")
+	if e != nil {
+		logger.Fatalf("%q", e)
+	}
 	for _, sourceFile := range input {
 		fmt.Println()
-		logger.Printf("Processing: %s\n", sourceFile.Path)
-		content, e := os.ReadFile(sourceFile.Path)
+		logger.Printf("Processing: %s\n", sourceFile.AbsolutePath)
+		content, e := os.ReadFile(sourceFile.AbsolutePath)
 
-		fileName, _ := strings.CutPrefix(sourceFile.Path, sourceFile.Root)
-		tokens, e := Tokenize(fileName, string(content))
-		a, e := Parse(fileName, tokens)
+		tokens, e := Tokenize(sourceFile.Path, string(content))
+		boc, e := Parse(sourceFile.Path, tokens)
 		if e != nil {
 			logger.Fatal(e)
 		}
 		// ir
-		e = GenerateCode(a)
+
+		// generate code
+		fileName, e := GenerateCode(tmpDir, boc)
+		if !keepGeneratedSource {
+			defer os.RemoveAll(tmpDir)
+		}
 		if e != nil {
 			log.Fatalf("%q", e)
 			return
 		}
+		logger.Printf("go build %s\n", fileName)
+		// compile the code
+		gobuild(boc.Name, fileName)
 
 	}
-	logger.Printf("go build\n")
-	gobuild()
 }
 
-func gobuild() {
-	cmd := exec.Command("go", "build", "-C", "generated/", "-o", "i-was-generated", "main.go")
+func gobuild(name, fileName string) {
+	_ = os.MkdirAll(target_dir, 0750)
+	outputFile := fmt.Sprintf("%s%s", target_dir, name)
+	logger.Printf("Generated %s", outputFile)
+
+	cmd := exec.Command("go", "build", "-o", outputFile, fileName)
 	output, _ := cmd.CombinedOutput()
-	fmt.Println(string(output))
+	if len(output) > 0 {
+		logger.Println(string(output))
+	}
 }

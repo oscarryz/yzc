@@ -104,25 +104,27 @@ func Tokenize(fileName string, content string) ([]token, error) {
 
 func printTokens(tokens []token) {
 	ll := 1
-	logger.Println("Tokens ")
-	fmt.Printf("%d: ", ll)
+	var builder strings.Builder
+	builder.WriteString("Tokens:\n")
+	builder.WriteString(fmt.Sprintf("%d: ", ll))
 	for _, t := range tokens {
 		if ll != t.pos.line {
 			ll = t.pos.line
-			fmt.Println()
-			fmt.Printf("%d: ", ll)
+			builder.WriteString("\n")
+			builder.WriteString(fmt.Sprintf("%d: ", ll))
 		}
-		fmt.Printf("%v", t)
+		builder.WriteString(fmt.Sprintf("%v", t))
 	}
-	fmt.Println()
+	builder.WriteString("\n")
+	logger.Println(builder.String())
 }
 
 func (t *tokenizer) addToken(tt tokenType, data string) {
 	col := t.col
 
 	if tt != EOF {
-		len := utf8.RuneCountInString(data)
-		col = t.col - len + 1
+		dataLen := utf8.RuneCountInString(data)
+		col = t.col - dataLen + 1
 	}
 	t.tokens = append(t.tokens, token{pos(t.line, col), tt, data})
 }

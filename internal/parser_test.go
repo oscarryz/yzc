@@ -7,32 +7,32 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	tests := []struct {
-		name    string
+		name     string
 		fileName string
-		tokens []token
-		want    *boc
-		wantErr bool
+		tokens   []token
+		want     *boc
+		wantErr  bool
 	}{
 		{
-			name: "Nested directory",
+			name:     "Nested directory",
 			fileName: "parent/simple.yz",
 			tokens: []token{
 				{pos(0, 0), EOF, "EOF"},
 			},
 			want: &boc{
-				name: "parent",
+				Name:    "parent",
 				bocType: nil,
 				blockBody: &blockBody{
-					expressions:[] expression {
+					expressions: []expression{
 						&boc{
-							name: "simple",
+							Name: "simple",
 							blockBody: &blockBody{
 								expressions: []expression{},
 								statements:  []statement{},
 							},
 						},
 					},
-					statements: [] statement{},
+					statements: []statement{},
 				},
 			},
 		},
