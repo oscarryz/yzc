@@ -79,5 +79,35 @@ func (e *_e) apply() {
 func main() {
 	e := _e{}
 	e.apply()
+	f:= &_factorial{}
+	f.n = 4
+	f.apply()
+	fmt.Println(f.result)
+
 }
 
+/*
+factorial #(n Int, Int)
+factoria = { n Int
+	n == 0 ? { 1 }
+	{ n * factorial(n -1 )}
+}
+factorial(2)
+*/
+type (
+	_factorial struct { 
+		n int
+		result int
+	}
+)
+func (f *_factorial) apply() {
+	if f.n == 0 { 
+		f.result = 1
+		return 
+	} else {
+		n := f.n
+		f.n = f.n - 1
+		f.apply()
+		f.result = n * f.result
+	}
+}
