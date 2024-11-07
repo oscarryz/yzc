@@ -7,11 +7,12 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	tests := []struct {
-		name     string
-		fileName string
-		tokens   []token
-		want     *boc
-		wantErr  bool
+		name         string
+		fileName     string
+		tokens       []token
+		want         *boc
+		wantErr      bool
+		errorMessage string
 	}{
 		{
 			name:     "Empty file",
@@ -146,6 +147,16 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Invalid expression expression",
+			fileName: "invalid_expression.yz",
+			tokens: []token{
+				{pos(1, 1), INTEGER, "1"},
+				{pos(1, 2), INTEGER, "2"},
+				{pos(1, 3), EOF, "EOF"},
+			}, wantErr: true,
+			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected ,",
+		},
 	}
 
 	for _, tt := range tests {
@@ -154,6 +165,11 @@ func TestParser_Parse(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.wantErr)
 				return
+			}
+			if tt.wantErr && err.Error() != tt.errorMessage {
+				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.errorMessage)
+				return
+
 			}
 			// compare go recursively
 			if !reflect.DeepEqual(got, tt.want) {

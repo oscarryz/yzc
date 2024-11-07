@@ -1,37 +1,10 @@
-## Add tests to handle lack of comma between expressions.
-
-Currently, a file with two literals 
-
-```
-1 "Hello"
-```
-Would parse as a single literal because at the absence of comma, 
-the parser finishes parsing the block of code and returns the result.
-
-```js
-{ 1 2 } 
-```
-Should be a syntax error because the parser expects a comma between the literals.
-
-```js
-{ 1, } 
-```
-Is probably fine
-
-The problem is a file creates an implicit block so we cannot check for
-closing brackets to determine the end of the block.
-
-```
-1 , a Int
-```
-
-
 
 ## Create an example of the generated Go code
 
 Complete [generated_go_structures_sample.go](internal/testdata/generated_go_structures_sample.go) to include asynchronous calls. 
 
 Include a recursive method call.
+
 ## Pass build options to the compiler
 
 We can keep the generated source files or discard them. 
@@ -45,7 +18,7 @@ To disambiguate we can:
 1. Force to use empty space around the `=` token to make it the assignment operator (easy and ugly)
 1. Perform and analysis of the surrounding tokens to determine if the `=` token is an assignment operator or part of an identifier. (hard and confusing)
 1. Prohibit the use of `=` as part of an identifier. (easy and restrictive)
-1. Force to call it with a dot `.` before the `=` token. (easy and restrictive but non-ambiguous)
+1. Force to call it with a dot `.` before the `=` token. (easy and restrictive but non-ambiguous but creates an special case)
 
 e.g. 
 ```js
@@ -68,13 +41,20 @@ Point : {
 a: Point(1, 2)
 b: Point(1, 2)
 // option 1
-a == b // true
+ == b // compiles to a.==(b) no error
 // option 2
 a==b // unknown symbol a==b
 // option 3 (would need to have `equals` in the `Point` type)
 a.equals(b) // true
 // option 4
 a.==b 
+
+
+With option 1 we would allow: 
+some=thing // [ID]
+some=thing = 1 // [ID, ASSIGN, NUMBER]
+
+It would't be a good idea to create such identifier but the compiler would allow it.
 ```
 Option 1 could be the best option.
 

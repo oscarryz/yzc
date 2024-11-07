@@ -61,6 +61,10 @@ func (p *parser) expect(t tokenType) bool {
 	return p.nextToken().tt == t
 }
 
+func (p *parser) peek() token {
+	return p.tokenPlus(1)
+}
+
 // parse parses the input file and returns the boc.
 func (p *parser) parse() (*boc, error) {
 	// splits the file Name into directories and file Name without extension
@@ -124,14 +128,21 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
-		if p.token().tt != COMMA {
-			break
+		switch p.token().tt {
+		case COMMA:
+			p.consume() // consume the comma
+			continue
+		case RBRACE:
+			p.consume() // consume the RBRACE
+			fallthrough
+		case EOF:
+			return bb, nil
+		default:
+			return nil, p.syntaxError("expected ,")
+
 		}
-		p.consume() // consume the comma
 	}
-	return bb, nil
-
-
+	//return bb, nil
 
 }
 
@@ -157,12 +168,9 @@ func (p *parser) expression() (expression, error) {
 		return &BasicLit{token.pos, token.tt, token.data}, nil
 	case LBRACE:
 		p.consume()
-		bb, e := p.blockBody()
+		bb, e := p.blockBody() // will consume the RBRACE if found
 		if e != nil {
 			return nil, e
-		}
-		if !p.expect(RBRACE) {
-			return nil, p.syntaxError("expected }")
 		}
 		return &boc{"", nil, bb}, nil
 	case RBRACE:
@@ -178,7 +186,7 @@ func (p *parser) statement() (statement, error) {
 }
 
 func (p *parser) syntaxError(message string) error {
-	p.currentToken = len(p.tokens) - 1
+	//p.currentToken = len(p.tokens) - 1
 	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
 }
 

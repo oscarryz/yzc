@@ -17,6 +17,11 @@ go test yzc/internal
 yzc source_dir 
 ```
 
+## IntelliJ IDEA setup
+
+Click on "Enable GO modules integration"  on "Settings" > "Languages & Frameworks" > "GO" > "GO Modules"  
+![img.png](doc/img.png)
+
 ## Language Documentation
 
 [Yz Design Notes](https://github.com/oscarryz/yz-design-notes)
