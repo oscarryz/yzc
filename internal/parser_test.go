@@ -27,7 +27,7 @@ func TestParser_Parse(t *testing.T) {
 						&boc{
 							Name: "simple",
 							blockBody: &blockBody{
-								expressions: []expression{},
+								expressions: []expression{ &empty{} },
 								statements:  []statement{},
 							},
 						},
@@ -37,6 +37,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := Parse(tt.fileName, tt.tokens)

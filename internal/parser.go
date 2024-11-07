@@ -88,27 +88,32 @@ func (p *parser) blockBody() (*blockBody, error) {
 		[]expression{},
 		[]statement{},
 	}
-	tok := p.nextToken()
-	for tok.tt != EOF {
-		tok = p.nextToken()
+	if expression, e := p.expression(); e == nil {
+		bb.expressions = append(bb.expressions, expression)
+	} else if statement, e := p.statement(); e == nil {
+		bb.statements = append(bb.statements, statement)
+	} else {
+		return nil, p.syntaxError("expected expression or statement")
+
 	}
 
 	return bb, nil
 }
-func (p *parser) expression() expression {
+func (p *parser) expression() (expression, error) {
 
 	token := p.token()
 	switch token.tt {
 	// literal
 	case INTEGER, DECIMAL, STRING:
-		return &BasicLit{token.pos, token.tt, token.data}
+		return &BasicLit{token.pos, token.tt, token.data}, nil
+	case EOF: return &empty{}, nil
 
 	}
-	return emptyExpression
+	return nil, p.syntaxError("expected expression")
 }
 
-func (p *parser) statement() statement {
-	return nil
+func (p *parser) statement() (statement, error) {
+	return nil, fmt.Errorf("not implemented")
 }
 
 func (p *parser) syntaxError(message string) error {
@@ -131,8 +136,8 @@ func (bb *blockBody) String() string {
 func (bl BasicLit) value() string {
 	return bl.val
 }
+
 func (e empty) value() string {
 	return "<empty>"
 }
 
-var emptyExpression = empty{}
