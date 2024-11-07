@@ -1,3 +1,32 @@
+## Add tests to handle lack of comma between expressions.
+
+Currently, a file with two literals 
+
+```
+1 "Hello"
+```
+Would parse as a single literal because at the absence of comma, 
+the parser finishes parsing the block of code and returns the result.
+
+```js
+{ 1 2 } 
+```
+Should be a syntax error because the parser expects a comma between the literals.
+
+```js
+{ 1, } 
+```
+Is probably fine
+
+The problem is a file creates an implicit block so we cannot check for
+closing brackets to determine the end of the block.
+
+```
+1 , a Int
+```
+
+
+
 ## Create an example of the generated Go code
 
 Complete [generated_go_structures_sample.go](internal/testdata/generated_go_structures_sample.go) to include asynchronous calls. 
