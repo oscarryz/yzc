@@ -129,8 +129,8 @@ func (p *parser) blockBody() (*blockBody, error) {
 		}
 
 		switch p.token().tt {
-		case COMMA:
-			p.consume() // consume the comma
+		case COMMA, NEWLINE:
+			p.consume()
 			continue
 		case RBRACE:
 			p.consume() // consume the RBRACE

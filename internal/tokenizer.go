@@ -159,6 +159,7 @@ func (t *tokenizer) skipComment() {
 	for {
 		r := t.nextRune()
 		if r == '\n' {
+			t.addToken(NEWLINE, "\n")
 			t.line++
 			t.col = 0
 			return
@@ -314,6 +315,7 @@ func (t *tokenizer) addNegativeNumber() {
 func (t *tokenizer) tokenize() ([]token, error) {
 	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
 		if r == '\n' {
+			t.addToken(NEWLINE, "\n")
 			t.line++
 			t.col = 0
 		}

@@ -157,6 +157,34 @@ func TestParser_Parse(t *testing.T) {
 			}, wantErr: true,
 			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected ,",
 		},
+		{
+			name:     "Two literals with new line",
+			fileName: "two_literals_newline.yz",
+			tokens: []token{
+				{pos(1, 1), INTEGER, "1"},
+				{pos(1, 2), NEWLINE, "\n"},
+				{pos(2, 1), STRING, "Hello world"},
+				{pos(2, 12), EOF, "EOF"},
+			}, want: &boc{
+				Name:    "two_literals_newline",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&BasicLit{
+							pos(1, 1),
+							INTEGER,
+							"1",
+						},
+						&BasicLit{
+							pos(2, 1),
+							STRING,
+							"Hello world",
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
