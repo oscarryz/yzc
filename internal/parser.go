@@ -57,8 +57,11 @@ func (p *parser) consume() {
 }
 
 // expect returns true if the next token is of type t.
-func (p *parser) expect(t tokenType) bool {
-	return p.nextToken().tt == t
+func (p *parser) expect(t tokenType) error {
+	if p.nextToken().tt != t {
+		return p.syntaxError(fmt.Sprintf("expected %s", t))
+	}
+	return nil
 }
 
 func (p *parser) peek() token {
@@ -119,6 +122,8 @@ func (p *parser) blockBody() (*blockBody, error) {
 		expr, e := p.expression()
 		if e == nil {
 			bb.expressions = append(bb.expressions, expr)
+		} else if e != nil {
+			return nil, e
 		} else {
 			stmt, e := p.statement()
 			if e == nil {
@@ -166,6 +171,7 @@ func (p *parser) expression() (expression, error) {
 	case INTEGER, DECIMAL, STRING:
 		p.consume()
 		return &BasicLit{token.pos, token.tt, token.data}, nil
+	// block literal
 	case LBRACE:
 		p.consume()
 		bb, e := p.blockBody() // will consume the RBRACE if found
@@ -173,12 +179,25 @@ func (p *parser) expression() (expression, error) {
 			return nil, e
 		}
 		return &boc{"", nil, bb}, nil
+	// Array or Dictionary literal
 	case RBRACE:
 		return &empty{}, nil
+
+	case LBRACKET:
+		ap := p.token().pos
+		if p.peek().tt == RBRACKET {
+			// eg [] Int
+			p.consume()
+			p.consume()
+			if e := p.expect(TYPEIDENTIFIER); e != nil {
+				return nil, e
+			}
+			return &ArrayLit{ap, LBRACKET, "[]", []expression{}}, nil
+		}
 	case EOF:
 		return &empty{}, nil
 	}
-	return nil, nil // p.syntaxError("expected expression")
+	return nil, nil
 }
 
 func (p *parser) statement() (statement, error) {
@@ -200,6 +219,9 @@ func (bb *blockBody) String() string {
 
 func (bl BasicLit) value() string {
 	return bl.val
+}
+func (al ArrayLit) value() string {
+	return al.val
 }
 
 func (e empty) value() string {

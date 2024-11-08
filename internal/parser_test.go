@@ -185,6 +185,30 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Array literal",
+			fileName: "array_literal.yz",
+			tokens: []token{
+				{pos(1, 1), LBRACKET, "["},
+				{pos(1, 2), RBRACKET, "]"},
+				{pos(1, 3), TYPEIDENTIFIER, "Int"},
+				{pos(1, 6), EOF, "EOF"},
+			}, want: &boc{
+				Name:    "array_literal",
+				bocType: nil,
+				blockBody: &blockBody{
+					statements: []statement{},
+					expressions: []expression{
+						&ArrayLit{
+							pos(1, 1),
+							LBRACKET,
+							"[]",
+							[]expression{},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -197,7 +221,68 @@ func TestParser_Parse(t *testing.T) {
 			if tt.wantErr && err.Error() != tt.errorMessage {
 				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.errorMessage)
 				return
+			}
+			// compare go recursively
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Parse() = %v\n want %v", got, tt.want)
+			}
+		})
+	}
+}
 
+// test tokenizer + parse
+func TestParse_TokenizeAndParse(t *testing.T) {
+	tests := []struct {
+		name         string
+		fileName     string
+		source       string
+		want         *boc
+		wantErr      bool
+		errorMessage string
+	}{
+		{
+			name:     "Two literals",
+			fileName: "two_literals.yz",
+			source: `[] Int
+"Hello"`,
+			want: &boc{
+				Name:    "two_literals",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ArrayLit{
+							pos(1, 1),
+							LBRACKET,
+							"[]",
+							[]expression{},
+						},
+						&BasicLit{
+							pos(2, 1),
+							STRING,
+							"Hello",
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tokens, err := Tokenize(tt.fileName, tt.source)
+			if err != nil {
+				t.Errorf("Tokenize() error = \"%v\"", err)
+				return
+			}
+			got, err := Parse(tt.fileName, tokens)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err.Error() != tt.errorMessage {
+				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.errorMessage)
+				return
 			}
 			// compare go recursively
 			if !reflect.DeepEqual(got, tt.want) {

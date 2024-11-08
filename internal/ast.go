@@ -28,6 +28,12 @@ type (
 		tt  tokenType
 		val string
 	}
+	ArrayLit struct {
+		pos  position
+		tt   tokenType
+		val  string
+		exps []expression
+	}
 
 	ParenthesisExp struct {
 		lparen position
