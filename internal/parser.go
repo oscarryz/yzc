@@ -209,14 +209,6 @@ func (p *parser) syntaxError(message string) error {
 	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
 }
 
-func (p *boc) String() string {
-	return p.value()
-}
-
-func (bb *blockBody) String() string {
-	return fmt.Sprintf("expressions: %#v statements: %#v", bb.expressions, bb.statements)
-}
-
 func (bl BasicLit) value() string {
 	return bl.val
 }

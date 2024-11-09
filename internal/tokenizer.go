@@ -66,7 +66,7 @@ type tokenizer struct {
 func (tt tokenType) String() string {
 	descriptions := [24]string{
 		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `#`, "NEWLINE",
-		`num`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
+		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
 	}
 	vot := int(tt)
 	if vot > len(descriptions) {
