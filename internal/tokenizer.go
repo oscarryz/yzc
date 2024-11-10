@@ -11,34 +11,35 @@ import (
 
 const (
 	EOF tokenType = iota
-	// delimiters
-	LPAREN
-	RPAREN
-	LBRACE
-	RBRACE
-	LBRACKET
-	RBRACKET
-	COMMA
-	COLON
-	SEMICOLON
-	PERIOD
-	EQL
-	HASH
-	NEWLINE
+	// punctuation
+	LPAREN    // (
+	RPAREN    // )
+	LBRACE    // {
+	RBRACE    // }
+	LBRACKET  // [
+	RBRACKET  // ]
+	COMMA     // ,
+	COLON     // :
+	SEMICOLON // ;
+	PERIOD    // .
+	ASSIGN    // =
+	EQUALS    // ==
+	HASH      // #
+	NEWLINE   // \n
 
 	// literals
-	INTEGER
-	DECIMAL
-	STRING
+	INTEGER // int
+	DECIMAL // dec
+	STRING  // str
 
 	// identifiers
-	IDENTIFIER
-	TYPEIDENTIFIER
-	NONWORDIDENTIFIER
-	BREAK
-	CONTINUE
-	RETURN
-	ILLEGAL
+	IDENTIFIER        // id
+	TYPEIDENTIFIER    // tid
+	NONWORDIDENTIFIER // nwid
+	BREAK             // BREAK
+	CONTINUE          // CONTINUE
+	RETURN            // RETURN
+	ILLEGAL           // ILLEGAL
 )
 
 type tokenType uint
@@ -64,8 +65,8 @@ type tokenizer struct {
 }
 
 func (tt tokenType) String() string {
-	descriptions := [24]string{
-		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `#`, "NEWLINE",
+	descriptions := [25]string{
+		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`, "NEWLINE",
 		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
 	}
 	vot := int(tt)
@@ -209,6 +210,10 @@ func lookupIdent(identifier string) tokenType {
 		return TYPEIDENTIFIER
 	}
 	switch identifier {
+	case "=":
+		return ASSIGN
+	case "==":
+		return EQUALS
 	case "break":
 		return BREAK
 	case "continue":
@@ -341,8 +346,6 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			t.addToken(LBRACKET, "[")
 		case ']':
 			t.addToken(RBRACKET, "]")
-		case '=':
-			t.addToken(EQL, "=")
 		case ',':
 			t.addToken(COMMA, ",")
 		case '#':
