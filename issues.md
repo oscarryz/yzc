@@ -1,3 +1,14 @@
+## Fix parser movement methods
+
+
+- nextToken()
+- peek()
+- consume()
+- expect()
+
+They all interact in a weird way, fix it so they are easier to use to validate the grammar. 
+
+See for instance dictionary validation in the [parser.go](internal/parser/parser.go) file.
 
 ## Create an example of the generated Go code
 

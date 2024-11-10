@@ -192,7 +192,20 @@ func (p *parser) expression() (expression, error) {
 			if e := p.expect(TYPEIDENTIFIER); e != nil {
 				return nil, e
 			}
-			return &ArrayLit{ap, LBRACKET, "[]", []expression{}}, nil
+			return &ArrayLit{ap, "[]", []expression{}}, nil
+		} else if p.peek().tt == TYPEIDENTIFIER {
+			// Empty dictionary literal: [String]Int
+			p.consume()
+			keyType := p.nextToken().data
+			if e := p.expect(RBRACKET); e != nil {
+				return nil, e
+			}
+			if e := p.expect(TYPEIDENTIFIER); e != nil {
+				return nil, e
+			}
+			p.rewind(1)
+			valType := p.nextToken().data
+			return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 		} else {
 			// eg [1 2 3]
 			p.consume()
@@ -205,14 +218,15 @@ func (p *parser) expression() (expression, error) {
 				exps = append(exps, expr)
 				if p.token().tt == RBRACKET {
 					p.consume()
-					return &ArrayLit{ap, LBRACKET, "[]", exps}, nil
+					return &ArrayLit{ap, "[]", exps}, nil
 				}
 			}
 		}
 	case EOF:
 		return &empty{}, nil
+	default:
+		return nil, nil
 	}
-	return nil, nil
 }
 
 func (p *parser) statement() (statement, error) {
@@ -222,15 +236,4 @@ func (p *parser) statement() (statement, error) {
 func (p *parser) syntaxError(message string) error {
 	//p.currentToken = len(p.tokens) - 1
 	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
-}
-
-func (bl BasicLit) value() string {
-	return bl.val
-}
-func (al ArrayLit) value() string {
-	return al.val
-}
-
-func (e empty) value() string {
-	return "<empty>"
 }

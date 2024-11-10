@@ -17,7 +17,6 @@ type (
 	}
 	blockType struct {
 		pos position
-		tt  tokenType
 		val string
 	}
 	blockBody struct {
@@ -32,9 +31,17 @@ type (
 	}
 	ArrayLit struct {
 		pos  position
-		tt   tokenType
 		val  string
 		exps []expression
+	}
+	// DictLit represents a dictionary literal [k1:v1 k2:v2] or [String]Int for empty dictionary
+	DictLit struct {
+		pos     position
+		val     string
+		keyType string
+		valType string
+		keys    []expression
+		values  []expression
 	}
 
 	ParenthesisExp struct {
@@ -69,6 +76,24 @@ func (bl *BasicLit) String() string {
 func (al *ArrayLit) String() string {
 	return prettyPrint(al, 0)
 }
+
+func (d *DictLit) String() string {
+	return prettyPrint(d, 0)
+}
+
 func (e *empty) String() string {
 	return prettyPrint(e, 0)
+}
+
+func (bl BasicLit) value() string {
+	return bl.val
+}
+func (al ArrayLit) value() string {
+	return al.val
+}
+func (d DictLit) value() string {
+	return d.val
+}
+func (e empty) value() string {
+	return "<empty>"
 }

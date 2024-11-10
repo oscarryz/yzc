@@ -201,7 +201,6 @@ func TestParser_Parse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							LBRACKET,
 							"[]",
 							[]expression{},
 						},
@@ -252,7 +251,6 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							LBRACKET,
 							"[]",
 							[]expression{},
 						},
@@ -277,7 +275,6 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							LBRACKET,
 							"[]",
 							[]expression{
 								&BasicLit{
@@ -313,12 +310,10 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							LBRACKET,
 							"[]",
 							[]expression{
 								&ArrayLit{
 									pos(1, 2),
-									LBRACKET,
 									"[]",
 									[]expression{
 										&BasicLit{
@@ -335,7 +330,6 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 								},
 								&ArrayLit{
 									pos(1, 8),
-									LBRACKET,
 									"[]",
 									[]expression{},
 								},
@@ -357,7 +351,6 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							LBRACKET,
 							"[]",
 							[]expression{
 								&boc{
@@ -390,6 +383,28 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 									},
 								},
 							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
+		{
+			name:     "Empty dictionary literal [String]Int",
+			fileName: "empty_dictionary_literal.yz",
+			source:   `[String]Int`,
+			want: &boc{
+				Name:    "empty_dictionary_literal",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&DictLit{
+							pos(1, 1),
+							"[]",
+							"String",
+							"Int",
+							[]expression{},
+							[]expression{},
 						},
 					},
 					statements: []statement{},

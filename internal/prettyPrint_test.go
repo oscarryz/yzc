@@ -41,12 +41,10 @@ func TestPrettyPrint(t *testing.T) {
 			name: "blockType",
 			input: &blockType{
 				pos: pos(1, 1),
-				tt:  TYPEIDENTIFIER,
 				val: "Int",
 			},
 			expected: `blockType {
     pos: line: 1 col: 1
-    tt: tid
     val: Int
 }
 `,
@@ -90,7 +88,6 @@ func TestPrettyPrint(t *testing.T) {
 			name: "ArrayLit",
 			input: &ArrayLit{
 				pos: pos(1, 1),
-				tt:  LBRACKET,
 				val: "[]",
 				exps: []expression{
 					&BasicLit{
@@ -102,7 +99,6 @@ func TestPrettyPrint(t *testing.T) {
 			},
 			expected: `ArrayLit {
     pos: line: 1 col: 1
-    tt: [
     val: []
     exps: [
         BasicLit {
@@ -118,6 +114,18 @@ func TestPrettyPrint(t *testing.T) {
 			name:     "\tempty struct{}\n",
 			input:    &empty{},
 			expected: "<empty>\n",
+		},
+		{
+			name: "BlockBody with nil expressions",
+			input: &blockBody{
+				expressions: nil,
+				statements:  nil,
+			},
+			expected: `blockBody {
+    exprs: nil
+    stmts: nil
+}
+`,
 		},
 	}
 
