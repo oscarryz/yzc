@@ -168,7 +168,7 @@ func (p *parser) expression() (expression, error) {
 	token := p.token()
 	switch token.tt {
 	// literal
-	case INTEGER, DECIMAL, STRING:
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
 		p.consume()
 		return &BasicLit{token.pos, token.tt, token.data}, nil
 	// block literal
@@ -183,12 +183,15 @@ func (p *parser) expression() (expression, error) {
 	case RBRACE:
 		return &empty{}, nil
 
+		// [ for array or dictionary
 	case LBRACKET:
 		ap := p.token().pos
+		// closing bracket means empty array
 		if p.peek().tt == RBRACKET {
 			// eg [] Int
 			p.consume()
 			p.consume()
+			// we want type identifier e.g. []Int
 			if e := p.expect(TYPEIDENTIFIER); e != nil {
 				return nil, e
 			}
@@ -207,16 +210,49 @@ func (p *parser) expression() (expression, error) {
 			valType := p.nextToken().data
 			return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 		} else {
+			// Could be array literal or dictionary literal
 			// eg [1 2 3]
-			p.consume()
-			exps := []expression{}
+			p.consume() // consume [
+			var exps []expression
+			dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
+			insideDict := false
 			for {
+				// first element or first key
 				expr, e := p.expression()
 				if e != nil {
 					return nil, e
 				}
-				exps = append(exps, expr)
-				if p.token().tt == RBRACKET {
+				t := p.token()
+				// skip new lines
+				for t.tt == NEWLINE {
+					p.consume()
+					t = p.token()
+				}
+
+				if t.tt == COLON {
+					// we are inside a dictionary
+					insideDict = true
+
+					p.consume()
+					key := expr
+					val, e := p.expression()
+					if e != nil {
+						return nil, e
+					}
+					if val == nil {
+						return nil, p.syntaxError("expected value")
+					}
+					dl.keys = append(dl.keys, key)
+					dl.values = append(dl.values, val)
+				} else {
+					// we are inside an array
+					exps = append(exps, expr)
+				}
+
+				if p.token().tt == RBRACKET && insideDict {
+					p.consume()
+					return dl, nil
+				} else if p.token().tt == RBRACKET {
 					p.consume()
 					return &ArrayLit{ap, "[]", exps}, nil
 				}

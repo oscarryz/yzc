@@ -1,3 +1,4 @@
-a: 1 // comment
-// comment
-b: 2
+[
+	"name": ["Yz"]
+	"type system": ["static" "strong" "structural"]
+]

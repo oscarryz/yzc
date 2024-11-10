@@ -411,6 +411,125 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Dictionary literal [k1:v1 k2:v2]",
+			fileName: "dictionary_literal.yz",
+			source:   `[k1:v1 k2:v2]`,
+			want: &boc{
+				Name:    "dictionary_literal",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&DictLit{
+							pos(1, 1),
+							"[]",
+							"",
+							"",
+							[]expression{
+								&BasicLit{
+									pos(1, 2),
+									IDENTIFIER,
+									"k1",
+								},
+								&BasicLit{
+									pos(1, 8),
+									IDENTIFIER,
+									"k2",
+								},
+							},
+							[]expression{
+								&BasicLit{
+									pos(1, 5),
+									IDENTIFIER,
+									"v1",
+								},
+								&BasicLit{
+									pos(1, 11),
+									IDENTIFIER,
+									"v2",
+								},
+							},
+						},
+					},
+
+					statements: []statement{},
+				},
+			},
+		},
+		/*
+					{
+						name:     "Dictionary literal of type [String][String] ",
+						fileName: "dictionary_literal_type.yz",
+						source: `[
+			        "name": ["Yz"]
+			        "type system": ["static" "strong" "structural"]
+			]
+			`,
+						want: &boc{
+							Name:    "dictionary_literal_type",
+							bocType: nil,
+							blockBody: &blockBody{
+								expressions: []expression{
+									&DictLit{
+										pos(1, 1),
+										"[]",
+										"String",
+										"[]",
+										[]expression{
+											&BasicLit{
+												pos(2, 9),
+												STRING,
+												"name",
+											},
+											&BasicLit{
+												pos(2, 18),
+												STRING,
+												"type system",
+											},
+										},
+										[]expression{
+											&ArrayLit{
+												pos(2, 26),
+												"[]",
+												[]expression{
+													&BasicLit{
+														pos(2, 30),
+														STRING,
+														"Yz",
+													},
+												},
+											},
+											&ArrayLit{
+
+												pos(3, 9),
+												"[]",
+												[]expression{
+													&BasicLit{
+														pos(3, 11),
+														STRING,
+														"static",
+													},
+													&BasicLit{
+														pos(3, 20),
+														STRING,
+														"strong",
+													},
+													&BasicLit{
+														pos(3, 29),
+														STRING,
+														"structural",
+													},
+												},
+											},
+										},
+									},
+								},
+
+								statements: []statement{},
+							},
+						},
+					},
+		*/
 	}
 
 	for _, tt := range tests {
