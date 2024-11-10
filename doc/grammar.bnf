@@ -169,6 +169,8 @@ variable_definition ::= variable_declaration "=" expression
 variable_declaration ::= variable type
 
 // #(T, x Int, String, String, e E)
+// #( 'constraint: > 0' x Int, T )
+
 block_signature
   ::= "#" "(" ")"
   | "#" "(" type_member ("," type_member)* ")"
@@ -177,9 +179,9 @@ block_signature
 new_type_declaration ::= type_identifier block_signature [ "=" block_literal ]
 
 type_member
-  ::= variable type ["=" default_value]
-  | generic_type_identifier
-  | variable ":" default_value
+  ::= [string] variable type ["=" default_value]
+  | [string] generic_type_identifier
+  | [string] variable ":" default_value
 
 default_value ::= expression
 

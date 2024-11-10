@@ -193,6 +193,21 @@ func (p *parser) expression() (expression, error) {
 				return nil, e
 			}
 			return &ArrayLit{ap, LBRACKET, "[]", []expression{}}, nil
+		} else {
+			// eg [1 2 3]
+			p.consume()
+			exps := []expression{}
+			for {
+				expr, e := p.expression()
+				if e != nil {
+					return nil, e
+				}
+				exps = append(exps, expr)
+				if p.token().tt == RBRACKET {
+					p.consume()
+					return &ArrayLit{ap, LBRACKET, "[]", exps}, nil
+				}
+			}
 		}
 	case EOF:
 		return &empty{}, nil

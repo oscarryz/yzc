@@ -266,6 +266,136 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "Array literal [1 2 3]",
+			fileName: "array_literal.yz",
+			source:   `[1 2 3]`,
+			want: &boc{
+				Name:    "array_literal",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ArrayLit{
+							pos(1, 1),
+							LBRACKET,
+							"[]",
+							[]expression{
+								&BasicLit{
+									pos(1, 2),
+									INTEGER,
+									"1",
+								},
+								&BasicLit{
+									pos(1, 4),
+									INTEGER,
+									"2",
+								},
+								&BasicLit{
+									pos(1, 6),
+									INTEGER,
+									"3",
+								},
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
+		{
+			name:     "Array of arrays	[[1 2] []Int]",
+			fileName: "array_of_arrays.yz",
+			source:   `[[1 2] []Int]`,
+			want: &boc{
+				Name:    "array_of_arrays",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ArrayLit{
+							pos(1, 1),
+							LBRACKET,
+							"[]",
+							[]expression{
+								&ArrayLit{
+									pos(1, 2),
+									LBRACKET,
+									"[]",
+									[]expression{
+										&BasicLit{
+											pos(1, 3),
+											INTEGER,
+											"1",
+										},
+										&BasicLit{
+											pos(1, 5),
+											INTEGER,
+											"2",
+										},
+									},
+								},
+								&ArrayLit{
+									pos(1, 8),
+									LBRACKET,
+									"[]",
+									[]expression{},
+								},
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
+		{
+			name:     "Array of blocks",
+			fileName: "array_of_blocks.yz",
+			source:   `[{1} {2}]`,
+			want: &boc{
+				Name:    "array_of_blocks",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ArrayLit{
+							pos(1, 1),
+							LBRACKET,
+							"[]",
+							[]expression{
+								&boc{
+									Name: "",
+									blockBody: &blockBody{
+										expressions: []expression{
+											&BasicLit{
+
+												pos(1, 3),
+												INTEGER,
+												"1",
+											},
+										},
+										statements: []statement{},
+									},
+								},
+								&boc{
+									Name: "",
+									blockBody: &blockBody{
+										expressions: []expression{
+
+											&BasicLit{
+												pos(1, 7),
+												INTEGER,
+
+												"2",
+											},
+										},
+										statements: []statement{},
+									},
+								},
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
