@@ -1,6 +1,9 @@
 package internal
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestTokenizer_Tokenize(t *testing.T) {
 	tests := []struct {
@@ -493,6 +496,41 @@ plusOne: -1 + -2.0
 						"       (pos:%v)", got, got[i].pos, tt.want, tt.want[i].pos)
 					return
 				}
+			}
+		})
+	}
+}
+
+func TestTokenizer_SyntaxErr(t *testing.T) {
+	tests := []struct {
+		name     string
+		fileName string
+		content  string
+		want     error
+	}{
+		{
+			"Unclosed string",
+			"test.yz",
+			`"`,
+			fmt.Errorf("[test.yz: line:1: col:2]: Syntax error: unterminated string literal"),
+		},
+		{
+			"Unclosed multiline comment",
+			"test.yz",
+			`/*`,
+			fmt.Errorf("[test.yz: line:1: col:3]: Syntax error: unterminated comment"),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, got := Tokenize(tt.fileName, tt.content)
+
+			if got == nil {
+				t.Errorf("Tokenize() error = %v, want %v", got, tt.want)
+				return
+			}
+			if got.Error() != tt.want.Error() {
+				t.Errorf("Tokenize() error = %v, want %v", got, tt.want)
 			}
 		})
 	}

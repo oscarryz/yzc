@@ -56,6 +56,7 @@ type position struct {
 }
 
 type tokenizer struct {
+	filname   string
 	content   string
 	tokens    []token
 	col       int
@@ -97,7 +98,7 @@ func (t token) String() string {
 
 // Tokenize converts the content into an array of tokens or returns an error if the content is not valid
 func Tokenize(fileName string, content string) ([]token, error) {
-	t := &tokenizer{content, []token{}, 0, 1, 0, true}
+	t := &tokenizer{fileName, content, []token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
 	printTokens(tokens)
 	return tokens, e
@@ -179,7 +180,11 @@ func (t *tokenizer) skipMultilineComment() {
 		t.line++
 		t.col = 0
 	}
-
+	if r == utf8.RuneError {
+		t.addToken(ILLEGAL, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated comment", t.filname, t.line, t.col))
+		t.keepGoing = false
+		return
+	}
 	for {
 		if r == '*' && t.peek() == '/' {
 			t.nextRune()
@@ -238,6 +243,11 @@ func (t *tokenizer) addStringLiteral() {
 	r := t.nextRune()
 	builder := strings.Builder{}
 	for r != opening {
+		if r == utf8.RuneError {
+			t.addToken(ILLEGAL, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated string literal", t.filname, t.line, t.col))
+			t.keepGoing = false
+			return
+		}
 		if r == '\\' {
 			// Handle escape sequences
 			next := t.nextRune()
@@ -383,6 +393,11 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			}
 		}
 	}
-	t.addToken(EOF, "EOF")
-	return t.tokens, nil
+
+	if len(t.tokens) > 0 && t.tokens[len(t.tokens)-1].tt == ILLEGAL {
+		return t.tokens, errors.New(t.tokens[len(t.tokens)-1].data)
+	} else {
+		t.addToken(EOF, "EOF")
+		return t.tokens, nil
+	}
 }

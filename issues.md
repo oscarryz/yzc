@@ -1,12 +1,10 @@
-## Fix parser test for dictionary of lists
+## Think if empty lines are considered empty expressions
+The following would result two expressions: BasicLit: 1 and EmptyExpr 
 ```
-[
-    "a": [1, 2, 3]
-    "b": [4, 5, 6]
-]
+1
+
 ```
 ## Fix parser movement methods
-
 
 - nextToken()
 - peek()
@@ -15,7 +13,7 @@
 
 They all interact in a weird way, fix it so they are easier to use to validate the grammar. 
 
-See for instance dictionary validation in the [parser.go](internal/parser/parser.go) file.
+See for instance dictionary validation in the [parser.go](internal/parser.go) file.
 
 ## Create an example of the generated Go code
 
