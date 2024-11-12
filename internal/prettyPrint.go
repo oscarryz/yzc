@@ -73,6 +73,12 @@ func prettyPrint(v interface{}, indent int) string {
 
 		}
 		sb.WriteString(indentStr(indent+2) + "]\n")
+	case *ShortDeclaration:
+		sb.WriteString(indentStr(indent) + "ShortDeclaration {\n")
+		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
+		sb.WriteString(indentStr(indent+2) + "identifier: " + v.key.value() + "\n")
+		sb.WriteString(prettyPrint(v.val, indent+2))
+		sb.WriteString(indentStr(indent) + "}\n")
 	case *empty:
 		sb.WriteString(indentStr(indent) + "<empty>\n")
 	// Add more cases for other types as needed

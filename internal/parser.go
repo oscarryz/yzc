@@ -107,7 +107,7 @@ func (p *parser) boc() (*boc, error) {
 	return &boc{"", nil, bb}, nil
 }
 
-// block_body ::= (expression | statement) ("," (expression | statement))* | ""
+// block_body ::= (expression | statement) ((","|"\n") (expression | statement))* | ""
 func (p *parser) blockBody() (*blockBody, error) {
 	bb := &blockBody{
 		[]expression{},
@@ -116,11 +116,11 @@ func (p *parser) blockBody() (*blockBody, error) {
 	// Checks if there is an expression or a statement
 	// if there's an expression adds it to the expressions slice
 	// if there's a statement adds it to the statements slice
-	// if there's a comma, it continues to parse the next expression or statement
+	// if there's a comma or newline, it continues to parse the next expression or statement
 	// Checks if there is an expression or a statement
 	for {
 		expr, e := p.expression()
-		if e == nil {
+		if e == nil && expr != nil {
 			bb.expressions = append(bb.expressions, expr)
 		} else if e != nil {
 			return nil, e
@@ -133,9 +133,14 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
+		// skip new lines
 		switch p.token().tt {
 		case COMMA, NEWLINE:
 			p.consume()
+			if p.peek().tt == RBRACE {
+				p.consume()
+				return bb, nil
+			}
 			continue
 		case RBRACE:
 			p.consume() // consume the RBRACE
@@ -143,7 +148,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 		case EOF:
 			return bb, nil
 		default:
-			return nil, p.syntaxError("expected ,")
+			return nil, p.syntaxError("expected \",\", NEWLINE or RBRACE. Got \"" + p.token().data + "\"")
 
 		}
 	}
@@ -165,10 +170,26 @@ func (p *parser) blockBody() (*blockBody, error) {
 
 func (p *parser) expression() (expression, error) {
 
+	t := p.token()
+	// skip new lines
+	for t.tt == NEWLINE {
+		p.consume()
+		t = p.token()
+	}
 	token := p.token()
 	switch token.tt {
 	// literal
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
+		//// if : then is short declaration
+		if p.peek().tt == COLON {
+			p.consume()
+			p.consume()
+			val, e := p.expression()
+			if e != nil {
+				return nil, e
+			}
+			return &ShortDeclaration{token.pos, &BasicLit{token.pos, token.tt, token.data}, val}, nil
+		}
 		p.consume()
 		return &BasicLit{token.pos, token.tt, token.data}, nil
 	// block literal
@@ -217,38 +238,55 @@ func (p *parser) expression() (expression, error) {
 			dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
 			insideDict := false
 			for {
-				// first element or first key
-				expr, e := p.expression()
-				if e != nil {
-					return nil, e
-				}
 				t := p.token()
 				// skip new lines
 				for t.tt == NEWLINE {
 					p.consume()
 					t = p.token()
 				}
+				// first element or first key
+				expr, e := p.expression()
 
-				if t.tt == COLON {
-					// we are inside a dictionary
+				// if the expr is a short declaration, then it's a dictionary
+				if sd, ok := expr.(*ShortDeclaration); ok {
 					insideDict = true
-
-					p.consume()
-					key := expr
-					val, e := p.expression()
-					if e != nil {
-						return nil, e
-					}
-					if val == nil {
-						return nil, p.syntaxError("expected value")
-					}
+					key := sd.key
+					val := sd.val
 					dl.keys = append(dl.keys, key)
 					dl.values = append(dl.values, val)
-				} else {
+				} else if expr != nil {
 					// we are inside an array
 					exps = append(exps, expr)
+				} else {
+					return nil, e
 				}
 
+				//if t.tt == COLON {
+				//	// we are inside a dictionary
+				//	insideDict = true
+				//
+				//	p.consume()
+				//	key := expr
+				//	val, e := p.expression()
+				//	if e != nil {
+				//		return nil, e
+				//	}
+				//	if val == nil {
+				//		return nil, p.syntaxError("expected value")
+				//	}
+				//	dl.keys = append(dl.keys, key)
+				//	dl.values = append(dl.values, val)
+				//} else {
+				// we are inside an array
+				//exps = append(exps, expr)
+				//}
+
+				t = p.token()
+				// skip new lines
+				for t.tt == NEWLINE {
+					p.consume()
+					t = p.token()
+				}
 				if p.token().tt == RBRACKET && insideDict {
 					p.consume()
 					return dl, nil

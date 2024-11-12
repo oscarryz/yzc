@@ -1,5 +1,7 @@
 package internal
 
+import "fmt"
+
 type (
 	boc struct {
 		Name      string
@@ -44,6 +46,12 @@ type (
 		values  []expression
 	}
 
+	ShortDeclaration struct {
+		pos position
+		key expression
+		val expression
+	}
+
 	ParenthesisExp struct {
 		lparen position
 		exps   []expression
@@ -81,6 +89,9 @@ func (d *DictLit) String() string {
 	return prettyPrint(d, 0)
 }
 
+func (sd *ShortDeclaration) String() string {
+	return prettyPrint(sd, 0)
+}
 func (e *empty) String() string {
 	return prettyPrint(e, 0)
 }
@@ -93,6 +104,10 @@ func (al ArrayLit) value() string {
 }
 func (d DictLit) value() string {
 	return d.val
+}
+
+func (sd ShortDeclaration) value() string {
+	return fmt.Sprintf("%s : %s", sd.key.value(), sd.val.value())
 }
 func (e empty) value() string {
 	return "<empty>"

@@ -24,7 +24,7 @@ expression
     | literal
     | variable
     | assignment
-    | variable_short_definition
+    | short_declaration
 
 // Invocation
 // b()
@@ -134,7 +134,7 @@ variable ::= variable_identifier
 // a: 1  // defines a of type Int and value 1
 // b: dict["key":"value"] //defines b as a dictionary with a key of "key:value"
 // c: d: 1  // defines c and d of type Int and value 1
-variable_short_definition ::= variable ":" expression
+short_declaration ::= variable ":" expression
 
 //////////////////////////////////
 // Statements

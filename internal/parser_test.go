@@ -155,7 +155,7 @@ func TestParser_Parse(t *testing.T) {
 				{pos(1, 2), INTEGER, "2"},
 				{pos(1, 3), EOF, "EOF"},
 			}, wantErr: true,
-			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected ,",
+			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected \",\", NEWLINE or RBRACE. Got \"2\"",
 		},
 		{
 			name:     "Two literals with new line",
@@ -527,6 +527,113 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 				},
 			},
 		},
+		{
+			"Short declaration",
+			"short_declaration.yz",
+			`a : 1`,
+			&boc{
+				Name:    "short_declaration",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ShortDeclaration{
+							pos(1, 1),
+							&BasicLit{
+								pos(1, 1),
+								IDENTIFIER,
+								"a",
+							},
+							&BasicLit{
+								pos(1, 5),
+								INTEGER,
+								"1",
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+			false,
+			"",
+		},
+		{
+			"Short declaration with block and array",
+			"short_declaration_block_array.yz",
+			`language: {
+    name: "Yz"
+    features: ["static" "strong" "structural"]
+}`,
+			&boc{
+				Name:    "short_declaration_block_array",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ShortDeclaration{
+							pos(1, 1),
+							&BasicLit{
+								pos: pos(1, 1),
+								tt:  IDENTIFIER,
+								val: "language",
+							},
+							&boc{
+								Name: "",
+								blockBody: &blockBody{
+									expressions: []expression{
+										&ShortDeclaration{
+											pos(2, 5),
+											&BasicLit{
+												pos(2, 5),
+												STRING,
+												"name",
+											},
+											&BasicLit{
+
+												pos(2, 11),
+												STRING,
+
+												"Yz",
+											},
+										},
+										&ShortDeclaration{
+											pos(3, 2),
+											&BasicLit{
+												pos: pos(3, 2),
+												tt:  IDENTIFIER,
+												val: "features",
+											}, &ArrayLit{
+												pos(3, 15),
+												"[]",
+												[]expression{
+													&BasicLit{
+														pos(3, 16),
+														STRING,
+														"static",
+													},
+													&BasicLit{
+														pos(3, 25),
+														STRING,
+														"strong",
+													},
+													&BasicLit{
+														pos(3, 34),
+														STRING,
+														"structural",
+													},
+												},
+											},
+										},
+									},
+									statements: []statement{},
+								},
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+			false,
+			"",
+		},
 	}
 
 	for _, tt := range tests {
@@ -538,7 +645,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			}
 			got, err := Parse(tt.fileName, tokens)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Parse() error = \"%v\", wantErr %v", err, tt.wantErr)
+				t.Errorf("%s\nParse() error = \"%v\", wantErr %v", tt.source, err, tt.wantErr)
 				return
 			}
 			if tt.wantErr && err.Error() != tt.errorMessage {
