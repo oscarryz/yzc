@@ -9,8 +9,8 @@ func prettyPrint(v interface{}, indent int) string {
 	var sb strings.Builder
 
 	switch v := v.(type) {
-	case *boc:
-		sb.WriteString(indentStr(indent) + "boc {\n")
+	case *Boc:
+		sb.WriteString(indentStr(indent) + "Boc {\n")
 		sb.WriteString(indentStr(indent+2) + "Name: " + v.Name + "\n")
 		if v.bocType != nil {
 			sb.WriteString(prettyPrint(v.bocType, indent+2))
@@ -76,7 +76,8 @@ func prettyPrint(v interface{}, indent int) string {
 	case *ShortDeclaration:
 		sb.WriteString(indentStr(indent) + "ShortDeclaration {\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
-		sb.WriteString(indentStr(indent+2) + "identifier: " + v.key.value() + "\n")
+		//sb.WriteString(indentStr(indent+2) + "identifier: " + v.key.value() + "\n")
+		sb.WriteString(prettyPrint(v.key, indent+2))
 		sb.WriteString(prettyPrint(v.val, indent+2))
 		sb.WriteString(indentStr(indent) + "}\n")
 	case *empty:

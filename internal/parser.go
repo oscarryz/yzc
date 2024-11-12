@@ -9,10 +9,10 @@ type parser struct {
 	fileName     string
 	tokens       []token
 	currentToken int
-	prog         *boc
+	prog         *Boc
 }
 
-func Parse(fileName string, tokens []token) (*boc, error) {
+func Parse(fileName string, tokens []token) (*Boc, error) {
 	p := newParser(fileName, tokens)
 	return p.parse()
 }
@@ -68,8 +68,8 @@ func (p *parser) peek() token {
 	return p.tokenPlus(1)
 }
 
-// parse parses the input file and returns the boc.
-func (p *parser) parse() (*boc, error) {
+// parse parses the input file and returns the Boc.
+func (p *parser) parse() (*Boc, error) {
 	// splits the file Name into directories and file Name without extension
 	parts := strings.Split(p.fileName, "/")
 	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
@@ -81,11 +81,11 @@ func (p *parser) parse() (*boc, error) {
 	leaf.Name = fileNameWithoutExtension
 	// Creates the parent bocs
 	// for a/b/c.yz will creates
-	// boc{ Name: "a", bocType: nil, blockBody:
-	//		boc: { Name: "b", bocType: nil, blockBody:
-	//			boc: { Name: "c", bocType: nil, blockBody: nil } } }
+	// Boc{ Name: "a", bocType: nil, blockBody:
+	//		Boc: { Name: "b", bocType: nil, blockBody:
+	//			Boc: { Name: "c", bocType: nil, blockBody: nil } } }
 	for i := len(parts) - 2; i >= 0; i-- {
-		leaf = &boc{
+		leaf = &Boc{
 			Name:    parts[i],
 			bocType: nil,
 			blockBody: &blockBody{
@@ -98,13 +98,13 @@ func (p *parser) parse() (*boc, error) {
 	return leaf, nil
 }
 
-// boc ::= block_body
-func (p *parser) boc() (*boc, error) {
+// Boc ::= block_body
+func (p *parser) boc() (*Boc, error) {
 	bb, e := p.blockBody()
 	if e != nil {
 		return nil, e
 	}
-	return &boc{"", nil, bb}, nil
+	return &Boc{"", nil, bb}, nil
 }
 
 // block_body ::= (expression | statement) ((","|"\n") (expression | statement))* | ""
@@ -133,14 +133,9 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
-		// skip new lines
 		switch p.token().tt {
-		case COMMA, NEWLINE:
+		case COMMA:
 			p.consume()
-			if p.peek().tt == RBRACE {
-				p.consume()
-				return bb, nil
-			}
 			continue
 		case RBRACE:
 			p.consume() // consume the RBRACE
@@ -170,12 +165,6 @@ func (p *parser) blockBody() (*blockBody, error) {
 
 func (p *parser) expression() (expression, error) {
 
-	t := p.token()
-	// skip new lines
-	for t.tt == NEWLINE {
-		p.consume()
-		t = p.token()
-	}
 	token := p.token()
 	switch token.tt {
 	// literal
@@ -199,7 +188,7 @@ func (p *parser) expression() (expression, error) {
 		if e != nil {
 			return nil, e
 		}
-		return &boc{"", nil, bb}, nil
+		return &Boc{"", nil, bb}, nil
 	// Array or Dictionary literal
 	case RBRACE:
 		return &empty{}, nil
@@ -238,12 +227,6 @@ func (p *parser) expression() (expression, error) {
 			dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
 			insideDict := false
 			for {
-				t := p.token()
-				// skip new lines
-				for t.tt == NEWLINE {
-					p.consume()
-					t = p.token()
-				}
 				// first element or first key
 				expr, e := p.expression()
 
@@ -281,12 +264,6 @@ func (p *parser) expression() (expression, error) {
 				//exps = append(exps, expr)
 				//}
 
-				t = p.token()
-				// skip new lines
-				for t.tt == NEWLINE {
-					p.consume()
-					t = p.token()
-				}
 				if p.token().tt == RBRACKET && insideDict {
 					p.consume()
 					return dl, nil

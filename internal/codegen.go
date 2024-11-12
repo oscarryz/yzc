@@ -8,7 +8,7 @@ import (
 	"text/template"
 )
 
-func GenerateCode(tempDir string, boc *boc) (string, error) {
+func GenerateCode(tempDir string, boc *Boc) (string, error) {
 	content := Bytes(boc)
 	bocGoName := fmt.Sprintf("%s.go", boc.Name)
 	fileName := filepath.Join(tempDir, bocGoName)
@@ -19,7 +19,7 @@ func GenerateCode(tempDir string, boc *boc) (string, error) {
 	return fileName, nil
 }
 
-func Bytes(boc *boc) []byte {
+func Bytes(boc *Boc) []byte {
 	goSourceTemplate, err := template.New("main").Parse(
 		`package main
 

@@ -25,7 +25,6 @@ const (
 	ASSIGN    // =
 	EQUALS    // ==
 	HASH      // #
-	NEWLINE   // \n
 
 	// literals
 	INTEGER // int
@@ -67,7 +66,7 @@ type tokenizer struct {
 
 func (tt tokenType) String() string {
 	descriptions := [25]string{
-		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`, "NEWLINE",
+		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`,
 		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
 	}
 	vot := int(tt)
@@ -161,7 +160,6 @@ func (t *tokenizer) skipComment() {
 	for {
 		r := t.nextRune()
 		if r == '\n' {
-			t.addToken(NEWLINE, "\n")
 			t.line++
 			t.col = 0
 			return
@@ -330,7 +328,13 @@ func (t *tokenizer) addNegativeNumber() {
 func (t *tokenizer) tokenize() ([]token, error) {
 	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
 		if r == '\n' {
-			t.addToken(NEWLINE, "\n")
+			// if last token is identifier, literal , keyword or delimiter add comma
+			if len(t.tokens) > 0 {
+				last := t.tokens[len(t.tokens)-1]
+				if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NONWORDIDENTIFIER || last.tt == TYPEIDENTIFIER || last.tt == RBRACE || last.tt == RPAREN {
+					t.addToken(COMMA, ",")
+				}
+			}
 			t.line++
 			t.col = 0
 		}

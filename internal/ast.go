@@ -3,7 +3,7 @@ package internal
 import "fmt"
 
 type (
-	boc struct {
+	Boc struct {
 		Name      string
 		bocType   *blockType
 		blockBody *blockBody
@@ -61,11 +61,11 @@ type (
 	empty struct{}
 )
 
-func (boc *boc) value() string {
+func (boc *Boc) value() string {
 	return boc.Name
 }
 
-func (b *boc) String() string {
+func (b *Boc) String() string {
 	return prettyPrint(b, 0)
 }
 
