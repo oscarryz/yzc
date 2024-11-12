@@ -1,3 +1,5 @@
+## Consider using comma to separate array elements
+
 ## Fix parser movement methods
 
 - nextToken()
