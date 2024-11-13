@@ -164,115 +164,17 @@ func (p *parser) blockBody() (*blockBody, error) {
 //    | variable_short_definition
 
 func (p *parser) expression() (expression, error) {
-
 	token := p.token()
+
 	switch token.tt {
-	// literal
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
-		//// if : then is short declaration
-		if p.peek().tt == COLON {
-			p.consume()
-			p.consume()
-			val, e := p.expression()
-			if e != nil {
-				return nil, e
-			}
-			return &ShortDeclaration{token.pos, &BasicLit{token.pos, token.tt, token.data}, val}, nil
-		}
-		p.consume()
-		return &BasicLit{token.pos, token.tt, token.data}, nil
-	// block literal
+		return p.parseLiteralOrShortDeclaration(token)
 	case LBRACE:
-		p.consume()
-		bb, e := p.blockBody() // will consume the RBRACE if found
-		if e != nil {
-			return nil, e
-		}
-		return &Boc{"", nil, bb}, nil
-	// Array or Dictionary literal
+		return p.parseBlockLiteral()
 	case RBRACE:
 		return &empty{}, nil
-
-		// [ for array or dictionary
 	case LBRACKET:
-		ap := p.token().pos
-		// closing bracket means empty array
-		if p.peek().tt == RBRACKET {
-			// eg [] Int
-			p.consume()
-			p.consume()
-			// we want type identifier e.g. []Int
-			if e := p.expect(TYPEIDENTIFIER); e != nil {
-				return nil, e
-			}
-			return &ArrayLit{ap, "[]", []expression{}}, nil
-		} else if p.peek().tt == TYPEIDENTIFIER {
-			// Empty dictionary literal: [String]Int
-			p.consume()
-			keyType := p.nextToken().data
-			if e := p.expect(RBRACKET); e != nil {
-				return nil, e
-			}
-			if e := p.expect(TYPEIDENTIFIER); e != nil {
-				return nil, e
-			}
-			p.rewind(1)
-			valType := p.nextToken().data
-			return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
-		} else {
-			// Could be array literal or dictionary literal
-			// eg [1 2 3]
-			p.consume() // consume [
-			var exps []expression
-			dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
-			insideDict := false
-			for {
-				// first element or first key
-				expr, e := p.expression()
-
-				// if the expr is a short declaration, then it's a dictionary
-				if sd, ok := expr.(*ShortDeclaration); ok {
-					insideDict = true
-					key := sd.key
-					val := sd.val
-					dl.keys = append(dl.keys, key)
-					dl.values = append(dl.values, val)
-				} else if expr != nil {
-					// we are inside an array
-					exps = append(exps, expr)
-				} else {
-					return nil, e
-				}
-
-				//if t.tt == COLON {
-				//	// we are inside a dictionary
-				//	insideDict = true
-				//
-				//	p.consume()
-				//	key := expr
-				//	val, e := p.expression()
-				//	if e != nil {
-				//		return nil, e
-				//	}
-				//	if val == nil {
-				//		return nil, p.syntaxError("expected value")
-				//	}
-				//	dl.keys = append(dl.keys, key)
-				//	dl.values = append(dl.values, val)
-				//} else {
-				// we are inside an array
-				//exps = append(exps, expr)
-				//}
-
-				if p.token().tt == RBRACKET && insideDict {
-					p.consume()
-					return dl, nil
-				} else if p.token().tt == RBRACKET {
-					p.consume()
-					return &ArrayLit{ap, "[]", exps}, nil
-				}
-			}
-		}
+		return p.parseArrayOrDictionaryLiteral()
 	case EOF:
 		return &empty{}, nil
 	default:
@@ -280,6 +182,98 @@ func (p *parser) expression() (expression, error) {
 	}
 }
 
+func (p *parser) parseLiteralOrShortDeclaration(token token) (expression, error) {
+	if p.peek().tt == COLON {
+		p.consume()
+		p.consume()
+		val, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+		return &ShortDeclaration{token.pos, &BasicLit{token.pos, token.tt, token.data}, val}, nil
+	}
+	p.consume()
+	return &BasicLit{token.pos, token.tt, token.data}, nil
+}
+
+func (p *parser) parseBlockLiteral() (expression, error) {
+	p.consume()
+	bb, err := p.blockBody()
+	if err != nil {
+		return nil, err
+	}
+	return &Boc{"", nil, bb}, nil
+}
+
+func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
+	ap := p.token().pos
+	p.consume()
+
+	// s/p.token()/peek
+	if p.token().tt == RBRACKET {
+		p.consume()
+		err := p.expect(TYPEIDENTIFIER)
+		if err != nil {
+			return nil, err
+		}
+		return p.parseTypedArrayLiteral(ap)
+	} else if p.token().tt == TYPEIDENTIFIER {
+		return p.parseEmptyDictionaryLiteral(ap)
+	} else {
+		return p.parseNonEmptyArrayOrDictionaryLiteral(ap)
+	}
+}
+
+func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
+	//p.consume()
+	//valType := p.nextToken().data
+	return &ArrayLit{ap, "[]", []expression{}}, nil
+}
+
+func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
+	//p.consume()
+	keyType := p.nextToken().data
+	if err := p.expect(RBRACKET); err != nil {
+		return nil, err
+	}
+	if err := p.expect(TYPEIDENTIFIER); err != nil {
+		return nil, err
+	}
+	p.rewind(1)
+	valType := p.nextToken().data
+	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
+}
+
+func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression, error) {
+	var exps []expression
+	dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
+	insideDict := false
+
+	for {
+		expr, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+
+		if sd, ok := expr.(*ShortDeclaration); ok {
+			insideDict = true
+			dl.keys = append(dl.keys, sd.key)
+			dl.values = append(dl.values, sd.val)
+		} else if expr != nil {
+			exps = append(exps, expr)
+		} else {
+			return nil, err
+		}
+
+		if p.token().tt == RBRACKET {
+			p.consume()
+			if insideDict {
+				return dl, nil
+			}
+			return &ArrayLit{ap, "[]", exps}, nil
+		}
+	}
+}
 func (p *parser) statement() (statement, error) {
 	return nil, fmt.Errorf("not implemented")
 }
