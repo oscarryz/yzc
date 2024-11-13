@@ -48,7 +48,7 @@ func prettyPrint(v interface{}, indent int) string {
 	case *ArrayLit:
 		sb.WriteString(indentStr(indent) + "ArrayLit {\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
-		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
+		sb.WriteString(indentStr(indent+2) + "arrayType:\n" + prettyPrint(v.arrayType, indent+4))
 		sb.WriteString(indentStr(indent+2) + "exps: [\n")
 		for _, exp := range v.exps {
 			sb.WriteString(prettyPrint(exp, indent+4))

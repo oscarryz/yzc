@@ -88,7 +88,12 @@ func TestPrettyPrint(t *testing.T) {
 			name: "ArrayLit",
 			input: &ArrayLit{
 				pos: pos(1, 1),
-				val: "[]",
+				arrayType: &BasicLit{
+					pos: pos(2, 1),
+					tt:  INTEGER,
+					val: "1",
+				},
+
 				exps: []expression{
 					&BasicLit{
 						pos: pos(2, 1),
@@ -99,7 +104,12 @@ func TestPrettyPrint(t *testing.T) {
 			},
 			expected: `ArrayLit {
     pos: line: 1 col: 1
-    val: []
+    arrayType:
+        BasicLit {
+            pos: line: 2 col: 1
+            tt: int
+            val: 1
+        }
     exps: [
         BasicLit {
             pos: line: 2 col: 1

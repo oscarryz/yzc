@@ -187,7 +187,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 		},
 		{
-			name:     "Array literal",
+			name:     "Array literal []Int",
 			fileName: "array_literal.yz",
 			tokens: []token{
 				{pos(1, 1), LBRACKET, "["},
@@ -202,7 +202,10 @@ func TestParser_Parse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							"[]",
+							&BasicLit{
+								pos(1, 3),
+								TYPEIDENTIFIER, "Int",
+							},
 							[]expression{},
 						},
 					},
@@ -252,7 +255,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							"[]",
+							&BasicLit{
+								pos(1, 4),
+								TYPEIDENTIFIER,
+								"Int",
+							},
 							[]expression{},
 						},
 						&BasicLit{
@@ -266,7 +273,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			},
 		},
 		{
-			name:     "Array literal [1 2 3]",
+			name:     "Array literal [1 2 3] is a [Int]",
 			fileName: "array_literal.yz",
 			source:   `[1 2 3]`,
 			want: &Boc{
@@ -276,7 +283,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							"[]",
+							&BasicLit{
+								pos(1, 2),
+								INTEGER,
+								"1",
+							},
 							[]expression{
 								&BasicLit{
 									pos(1, 2),
@@ -301,7 +312,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			},
 		},
 		{
-			name:     "Array of arrays	[[1 2] []Int]",
+			name:     "Array of arrays	[[1 2] []Int] is an [][Int]",
 			fileName: "array_of_arrays.yz",
 			source:   `[[1 2] []Int]`,
 			want: &Boc{
@@ -311,11 +322,22 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							"[]",
+							&ArrayLit{
+								pos(1, 2),
+								&BasicLit{
+									pos(1, 3),
+									INTEGER, "1",
+								},
+								[]expression{}},
+
 							[]expression{
 								&ArrayLit{
 									pos(1, 2),
-									"[]",
+									&BasicLit{
+										pos(1, 3),
+										INTEGER,
+										"1",
+									},
 									[]expression{
 										&BasicLit{
 											pos(1, 3),
@@ -331,7 +353,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 								},
 								&ArrayLit{
 									pos(1, 8),
-									"[]",
+									&BasicLit{
+										pos(1, 10),
+										TYPEIDENTIFIER,
+										"Int",
+									},
 									[]expression{},
 								},
 							},
@@ -352,7 +378,14 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					expressions: []expression{
 						&ArrayLit{
 							pos(1, 1),
-							"[]",
+							&Boc{
+								"",
+								nil,
+								&blockBody{
+									[]expression{},
+									[]statement{},
+								},
+							},
 							[]expression{
 								&Boc{
 									Name: "",
@@ -489,7 +522,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							[]expression{
 								&ArrayLit{
 									pos(2, 13),
-									"[]",
+									&BasicLit{
+										pos(2, 14),
+										STRING,
+										"Yz",
+									},
 									[]expression{
 										&BasicLit{
 											pos(2, 14),
@@ -501,7 +538,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 								&ArrayLit{
 
 									pos(3, 20),
-									"[]",
+									&BasicLit{
+										pos(3, 21),
+										STRING,
+										"static",
+									},
 									[]expression{
 										&BasicLit{
 											pos(3, 21),
@@ -603,7 +644,11 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 												val: "features",
 											}, &ArrayLit{
 												pos(3, 15),
-												"[]",
+												&BasicLit{
+													pos(3, 16),
+													STRING,
+													"static",
+												},
 												[]expression{
 													&BasicLit{
 														pos(3, 16),

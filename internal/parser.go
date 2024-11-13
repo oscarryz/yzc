@@ -226,8 +226,10 @@ func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
 
 func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 	//p.consume()
-	//valType := p.nextToken().data
-	return &ArrayLit{ap, "[]", []expression{}}, nil
+	p.rewind(1)
+	ct := p.token()
+	p.consume()
+	return &ArrayLit{ap, &BasicLit{ct.pos, ct.tt, ct.data}, []expression{}}, nil
 }
 
 func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
@@ -270,7 +272,21 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			if insideDict {
 				return dl, nil
 			}
-			return &ArrayLit{ap, "[]", exps}, nil
+
+			switch exps[0].(type) {
+			case *ArrayLit:
+				al, _ := exps[0].(*ArrayLit)
+				at := &ArrayLit{al.pos, al.arrayType, []expression{}}
+				return &ArrayLit{ap, at, exps}, nil
+			case *Boc:
+				bl, _ := exps[0].(*Boc)
+				bt := &Boc{bl.Name, nil, &blockBody{[]expression{}, []statement{}}}
+				return &ArrayLit{ap, bt, exps}, nil
+			default:
+				return &ArrayLit{ap, exps[0], exps}, nil
+
+			}
+
 		}
 	}
 }

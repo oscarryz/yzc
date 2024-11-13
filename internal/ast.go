@@ -32,9 +32,9 @@ type (
 		val string
 	}
 	ArrayLit struct {
-		pos  position
-		val  string
-		exps []expression
+		pos       position
+		arrayType expression
+		exps      []expression
 	}
 	// DictLit represents a dictionary literal [k1:v1 k2:v2] or [String]Int for empty dictionary
 	DictLit struct {
@@ -65,8 +65,8 @@ func (boc *Boc) value() string {
 	return boc.Name
 }
 
-func (b *Boc) String() string {
-	return prettyPrint(b, 0)
+func (boc *Boc) String() string {
+	return prettyPrint(boc, 0)
 }
 
 func (bt *blockType) String() string {
@@ -96,19 +96,19 @@ func (e *empty) String() string {
 	return prettyPrint(e, 0)
 }
 
-func (bl BasicLit) value() string {
+func (bl *BasicLit) value() string {
 	return bl.val
 }
-func (al ArrayLit) value() string {
-	return al.val
+func (al *ArrayLit) value() string {
+	return al.arrayType.value()
 }
-func (d DictLit) value() string {
+func (d *DictLit) value() string {
 	return d.val
 }
 
-func (sd ShortDeclaration) value() string {
+func (sd *ShortDeclaration) value() string {
 	return fmt.Sprintf("%s : %s", sd.key.value(), sd.val.value())
 }
-func (e empty) value() string {
+func (e *empty) value() string {
 	return "<empty>"
 }
