@@ -10,7 +10,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 		name     string
 		fileName string
 		content  string
-		want     []token
+		want     []Token
 	}{
 
 		{
@@ -18,7 +18,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 			"test.yz",
 			`( ) { } [ ] , : ; . = # 
 1 1.0 "Hello, World!" 'Hello, name!' a Point + break continue return /* This is a block comment */ // This is a line comment`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: LPAREN, data: "("},
 				{pos: position{line: 1, col: 3}, tt: RPAREN, data: ")"},
 				{pos: position{line: 1, col: 5}, tt: LBRACE, data: "{"},
@@ -48,7 +48,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 			"Line comment + EOF",
 			"test.yz",
 			`// This is a comment`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 22}, tt: EOF, data: "EOF"},
 			},
 		},
@@ -57,7 +57,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 			"test.yz",
 			`// This is a comment
 1 + 2`,
-			[]token{
+			[]Token{
 				{pos: position{line: 2, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 2, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 2, col: 5}, tt: INTEGER, data: "2"},
@@ -69,7 +69,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 			"test.yz",
 			`1 + 2 // This is a comment
 a: 3`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 5}, tt: INTEGER, data: "2"},
@@ -86,7 +86,7 @@ a: 3`,
 that spans multiple lines
 */
 b:2`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "a"},
 				{pos: position{line: 1, col: 2}, tt: COLON, data: ":"},
 				{pos: position{line: 1, col: 3}, tt: INTEGER, data: "1"},
@@ -101,7 +101,7 @@ b:2`,
 			"Block comment followed by line comment",
 			"test.yz",
 			`a:1 /* This is a block comment */ // This is a line comment`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "a"},
 				{pos: position{line: 1, col: 2}, tt: COLON, data: ":"},
 				{pos: position{line: 1, col: 3}, tt: INTEGER, data: "1"},
@@ -112,7 +112,7 @@ b:2`,
 			"String literals",
 			"test.yz",
 			`"Hello, World!"`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hello, World!"},
 				{pos: position{line: 1, col: 16}, tt: EOF, data: "EOF"},
 			},
@@ -122,7 +122,7 @@ b:2`,
 			"test.yz",
 			`"Hi,
 World!"`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hi,\nWorld!"},
 				{pos: position{line: 2, col: 8}, tt: EOF, data: "EOF"},
 			},
@@ -132,7 +132,7 @@ World!"`,
 			"test.yz",
 			`"Hi, \"
 World!"`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hi, \"\nWorld!"},
 				{pos: position{line: 2, col: 8}, tt: EOF, data: "EOF"},
 			},
@@ -144,7 +144,7 @@ World!"`,
 			`"Hi,   
 	World!   .
 	."`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hi,   \n\tWorld!   .\n\t."},
 				{pos: position{line: 3, col: 4}, tt: EOF, data: "EOF"},
 			},
@@ -153,7 +153,7 @@ World!"`,
 			"String literals with various escapes",
 			"test.yz",
 			`"The quick\nbrown fox\tjumps over\\the lazy dog\"She said, 'Hello'\\xUnknown escape"`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "The quick\nbrown fox\tjumps over\\the lazy dog\"She said, 'Hello'\\xUnknown escape"},
 				{pos: position{line: 1, col: 85}, tt: EOF, data: "EOF"},
 			},
@@ -162,7 +162,7 @@ World!"`,
 			"String interpolation",
 			"test.yz",
 			"'Hello, `name`!'",
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hello, `name`!"},
 				{pos: position{line: 1, col: 17}, tt: EOF, data: "EOF"},
 			},
@@ -171,7 +171,7 @@ World!"`,
 			"String literals",
 			"test.yz",
 			`["One" 'Two' "'Three'" '"Four"']`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: LBRACKET, data: "["},
 				{pos: position{line: 1, col: 2}, tt: STRING, data: "One"},
 				{pos: position{line: 1, col: 8}, tt: STRING, data: "Two"},
@@ -185,7 +185,7 @@ World!"`,
 			"Integers",
 			"test.yz",
 			`1 9876324`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: INTEGER, data: "9876324"},
 				{pos: position{line: 1, col: 10}, tt: EOF, data: "EOF"},
@@ -195,7 +195,7 @@ World!"`,
 			"Decimal literals",
 			"test.yz",
 			`1.0`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: DECIMAL, data: "1.0"},
 				{pos: position{line: 1, col: 4}, tt: EOF, data: "EOF"},
 			},
@@ -206,7 +206,7 @@ World!"`,
 			`minusThree: -1 - -2.0
 plusOne: -1 + -2.0
 `,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "minusThree"},
 				{pos: position{line: 1, col: 11}, tt: COLON, data: ":"},
 				{pos: position{line: 1, col: 13}, tt: INTEGER, data: "-1"},
@@ -227,7 +227,7 @@ plusOne: -1 + -2.0
 			"Equals sign examples",
 			"test.yz",
 			`== => =< =a =`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: EQUALS, data: "=="},
 				{pos: position{line: 1, col: 4}, tt: NONWORDIDENTIFIER, data: "=>"},
 				{pos: position{line: 1, col: 7}, tt: NONWORDIDENTIFIER, data: "=<"},
@@ -240,7 +240,7 @@ plusOne: -1 + -2.0
 			"Non ascii characters",
 			"test.yz",
 			`message: 👋🌍`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "message"},
 				{pos: position{line: 1, col: 8}, tt: COLON, data: ":"},
 				{pos: position{line: 1, col: 10}, tt: NONWORDIDENTIFIER, data: "👋🌍"},
@@ -251,7 +251,7 @@ plusOne: -1 + -2.0
 			"Non word identifiers examples",
 			"test.yz",
 			`+ - * / % ~ < > ! & | ^ += -= /= ~= != <= >= && || ++ -- >>= <<= >> << |> <- -> `,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "-"},
 				{pos: position{line: 1, col: 5}, tt: NONWORDIDENTIFIER, data: "*"},
@@ -290,7 +290,7 @@ plusOne: -1 + -2.0
 			"Printable UTF-8 characters (additional symbols and emojis)",
 			"test.yz",
 			`©®™✓✔✕✖✗✘✙✚✛✜✢✣✤✥✦✧✨⭐✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋❌❍❎❏❐❑❒❖❗❘❙❚❛❜❝❞❡❢❣❤❥❦❧`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: NONWORDIDENTIFIER, data: "©®™✓✔✕✖✗✘✙✚✛✜✢✣✤✥✦✧✨⭐✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋❌❍❎❏❐❑❒❖❗❘❙❚❛❜❝❞❡❢❣❤❥❦❧"},
 				{pos: position{line: 1, col: 80}, tt: EOF, data: "EOF"},
 			},
@@ -299,7 +299,7 @@ plusOne: -1 + -2.0
 			name:     "Common mathematical symbols in Unicode and UTF-8",
 			fileName: "test.yz",
 			content:  `∑ ∏ ∫ ∞ √ ∇ ≈ ≠ ≤ ≥ ± ∂ ∃ ∀ ∈ ∉ ∋ ∅ ∧ ∨ ∩ ∪ ⊂ ⊃ ⊆ ⊇ ⊕ ⊗ ⊥`,
-			want: []token{
+			want: []Token{
 				{pos: position{line: 1, col: 1}, tt: NONWORDIDENTIFIER, data: "∑"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "∏"},
 				{pos: position{line: 1, col: 5}, tt: NONWORDIDENTIFIER, data: "∫"},
@@ -347,7 +347,7 @@ plusOne: -1 + -2.0
 γειά: "greek"
 æøå: "nordic"
 `,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "¡hola!"},
 				{pos: position{line: 1, col: 7}, tt: COLON, data: ":"},
 				{pos: position{line: 1, col: 9}, tt: STRING, data: "latin"},
@@ -400,7 +400,7 @@ plusOne: -1 + -2.0
 			"Simple",
 			"test.yz",
 			`1 + 2`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 5}, tt: INTEGER, data: "2"},
@@ -411,7 +411,7 @@ plusOne: -1 + -2.0
 			"Simple with spaces",
 			"test.yz",
 			`1 + 2`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 5}, tt: INTEGER, data: "2"},
@@ -423,7 +423,7 @@ plusOne: -1 + -2.0
 			"test.yz",
 			`1 + 2
 `,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 5}, tt: INTEGER, data: "2"},
@@ -436,7 +436,7 @@ plusOne: -1 + -2.0
 			"test.yz",
 			`1 + 2
 `,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 1, col: 3}, tt: NONWORDIDENTIFIER, data: "+"},
 				{pos: position{line: 1, col: 5}, tt: INTEGER, data: "2"},
@@ -448,7 +448,7 @@ plusOne: -1 + -2.0
 			"Hash and parenthesis",
 			"test.yz",
 			`fn #(Int)`,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "fn"},
 				{pos: position{line: 1, col: 4}, tt: HASH, data: "#"},
 				{pos: position{line: 1, col: 5}, tt: LPAREN, data: "("},
@@ -462,7 +462,7 @@ plusOne: -1 + -2.0
 			"Empty file",
 			"test.yz",
 			``,
-			[]token{
+			[]Token{
 				{pos: position{line: 1, col: 1}, tt: EOF, data: "EOF"},
 			},
 		},
@@ -471,7 +471,7 @@ plusOne: -1 + -2.0
 			"test.yz",
 			`  
   `,
-			[]token{
+			[]Token{
 				{pos: position{line: 2, col: 3}, tt: EOF, data: "EOF"},
 			},
 		},
@@ -523,7 +523,7 @@ func TestTokenizer_SyntaxErr(t *testing.T) {
 			"Backtick strings",
 			"test.yz",
 			"`hola`",
-			fmt.Errorf("[test.yz: line:1: col:1]: Unexpected token `"),
+			fmt.Errorf("[test.yz: line:1: col:1]: Unexpected Token `"),
 		},
 	}
 	for _, tt := range tests {

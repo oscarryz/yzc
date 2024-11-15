@@ -43,7 +43,7 @@ const (
 
 type tokenType uint
 
-type token struct {
+type Token struct {
 	pos  position
 	tt   tokenType
 	data string
@@ -57,7 +57,7 @@ type position struct {
 type tokenizer struct {
 	filname   string
 	content   string
-	tokens    []token
+	tokens    []Token
 	col       int
 	line      int
 	pos       int
@@ -85,7 +85,7 @@ func pos(line, col int) position {
 	return position{line, col}
 }
 
-func (t token) String() string {
+func (t Token) String() string {
 
 	switch t.tt {
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER, TYPEIDENTIFIER:
@@ -96,14 +96,14 @@ func (t token) String() string {
 }
 
 // Tokenize converts the content into an array of tokens or returns an error if the content is not valid
-func Tokenize(fileName string, content string) ([]token, error) {
-	t := &tokenizer{fileName, content, []token{}, 0, 1, 0, true}
+func Tokenize(fileName string, content string) ([]Token, error) {
+	t := &tokenizer{fileName, content, []Token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
 	printTokens(tokens)
 	return tokens, e
 }
 
-func printTokens(tokens []token) {
+func printTokens(tokens []Token) {
 	ll := 1
 	var builder strings.Builder
 	builder.WriteString("Tokens:\n")
@@ -127,7 +127,7 @@ func (t *tokenizer) addToken(tt tokenType, data string) {
 		dataLen := utf8.RuneCountInString(data)
 		col = t.col - dataLen + 1
 	}
-	t.tokens = append(t.tokens, token{pos(t.line, col), tt, data})
+	t.tokens = append(t.tokens, Token{pos(t.line, col), tt, data})
 }
 
 func (t *tokenizer) nextRune() rune {
@@ -273,7 +273,7 @@ func (t *tokenizer) addStringLiteral() {
 		}
 		r = t.nextRune()
 	}
-	t.tokens = append(t.tokens, token{pos, STRING, builder.String()})
+	t.tokens = append(t.tokens, Token{pos, STRING, builder.String()})
 }
 
 func (t *tokenizer) isIdentifier(r rune) bool {
@@ -325,7 +325,7 @@ func (t *tokenizer) addNegativeNumber() {
 	t.readNumber(false)
 }
 
-func (t *tokenizer) tokenize() ([]token, error) {
+func (t *tokenizer) tokenize() ([]Token, error) {
 	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
 		if r == '\n' {
 			t.addCommaIfNeeded()
@@ -380,13 +380,13 @@ func (t *tokenizer) tokenize() ([]token, error) {
 					t.skipMultilineComment()
 					continue
 				}
-				fallthrough // add `/` as an identifier token
+				fallthrough // add `/` as an identifier Token
 			case t.isIdentifier(r):
 				t.unReadRune(r)
 				id := t.readIdentifier()
 				t.addToken(lookupIdent(id), id)
 			default:
-				unexpectedTokenMessage := fmt.Sprintf("[%s: line:%d: col:%d]: Unexpected token %s", t.filname, t.line, t.col, string(r))
+				unexpectedTokenMessage := fmt.Sprintf("[%s: line:%d: col:%d]: Unexpected Token %s", t.filname, t.line, t.col, string(r))
 				t.addToken(Unexpected, unexpectedTokenMessage)
 				return t.tokens, errors.New(unexpectedTokenMessage)
 			}

@@ -7,49 +7,36 @@ import (
 
 type parser struct {
 	fileName     string
-	tokens       []token
+	tokens       []Token
 	currentIndex int
-	prog         *Boc
+	Token
+	prog *Boc
 }
 
-func Parse(fileName string, tokens []token) (*Boc, error) {
+func Parse(fileName string, tokens []Token) (*Boc, error) {
 	p := newParser(fileName, tokens)
 	return p.parse()
 }
 
-func newParser(fileName string, tokens []token) *parser {
+func newParser(fileName string, tokens []Token) *parser {
 	return &parser{
 		fileName,
 		tokens,
 		0,
+		tokens[0],
 		nil,
 	}
 }
 
-// token returns the current token without advancing the parser.
-func (p *parser) currentToken() tokenType {
-	return p.tokens[p.currentIndex].tt
-}
-func (p *parser) currentTokenData() string {
-	return p.tokens[p.currentIndex].data
-}
-func (p *parser) currentTokenPos() position {
-	return p.tokens[p.currentIndex].pos
-}
-
-// Returns the next token without advancing the parser.
-func (p *parser) peek() token {
-	return p.tokens[p.currentIndex+1]
-}
-
-// consume advances the parser by one token.
+// consume advances the parser by one Token.
 func (p *parser) consume() {
 	p.currentIndex++
+	p.Token = p.tokens[p.currentIndex]
 }
 
-// expect returns true if the next token is of type t.
+// expect returns true if the next Token is of type t.
 func (p *parser) expect(t tokenType) error {
-	if p.currentToken() != t {
+	if p.tt != t {
 		return p.syntaxError(fmt.Sprintf("expected %s", t))
 	}
 	return nil
@@ -120,8 +107,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
-		// p.token
-		switch p.currentToken() {
+		switch p.tt {
 		case COMMA:
 			p.consume()
 			continue
@@ -131,7 +117,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 		case EOF:
 			return bb, nil
 		default:
-			return nil, p.syntaxError("expected \",\" or \"}\". Got \"" + p.currentTokenData() + "\"")
+			return nil, p.syntaxError("expected \",\" or \"}\". Got \"" + p.data + "\"")
 
 		}
 	}
@@ -152,7 +138,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 //	| assignment
 //	| variable_short_definition
 func (p *parser) expression() (expression, error) {
-	token := p.currentToken()
+	token := p.tt
 	switch token {
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
 		return p.parseLiteralOrShortDeclaration()
@@ -162,7 +148,7 @@ func (p *parser) expression() (expression, error) {
 	case RBRACE:
 		return &empty{}, nil
 	case LBRACKET:
-		ap := p.currentTokenPos()
+		ap := p.pos
 		p.consume()
 		return p.parseArrayOrDictionaryLiteral(ap)
 	case EOF:
@@ -175,13 +161,13 @@ func (p *parser) expression() (expression, error) {
 // a, 1, "hello", 1.0
 // a: 1, b: "hello", c: 1.0
 func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
-	token := p.currentToken()
-	ctp := p.currentTokenPos()
-	ctd := p.currentTokenData()
+	token := p.tt
+	ctp := p.pos
+	ctd := p.data
 
 	p.consume() // consume the  literal that brought us here
 	bl := &BasicLit{ctp, token, ctd}
-	if p.currentToken() == COLON {
+	if p.tt == COLON {
 		p.consume() // consume the COLON
 		val, err := p.expression()
 		if err != nil {
@@ -198,10 +184,10 @@ func (p *parser) parseBlockLiteral() (expression, error) {
 }
 
 func (p *parser) parseArrayOrDictionaryLiteral(ap position) (expression, error) {
-	if p.currentToken() == RBRACKET {
+	if p.tt == RBRACKET {
 		p.consume()
 		return p.parseTypedArrayLiteral(ap)
-	} else if p.currentToken() == TYPEIDENTIFIER {
+	} else if p.tt == TYPEIDENTIFIER {
 		return p.parseEmptyDictionaryLiteral(ap)
 	} else {
 		return p.parseNonEmptyArrayOrDictionaryLiteral(ap)
@@ -214,16 +200,16 @@ func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 	if err != nil {
 		return nil, err
 	}
-	ct := p.currentToken()
-	ctp := p.currentTokenPos()
-	ctd := p.currentTokenData()
+	ct := p.tt
+	ctp := p.pos
+	ctd := p.data
 	p.consume()
 	return &ArrayLit{ap, &BasicLit{ctp, ct, ctd}, []expression{}}, nil
 }
 
 // [ String ] Int
 func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
-	keyType := p.currentTokenData()
+	keyType := p.data
 	p.consume()
 	if err := p.expect(RBRACKET); err != nil {
 		return nil, err
@@ -232,7 +218,7 @@ func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
 	if err := p.expect(TYPEIDENTIFIER); err != nil {
 		return nil, err
 	}
-	valType := p.currentTokenData()
+	valType := p.data
 	p.consume()
 	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 }
@@ -260,11 +246,11 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return nil, err
 		}
 
-		ct := p.currentToken()
+		ct := p.tt
 		p.consume()
 
 		if ct == COMMA {
-			ct = p.currentToken()
+			ct = p.tt
 			if ct != RBRACKET {
 				continue
 			}
@@ -278,7 +264,7 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return createArrayLiteral(ap, exps)
 		}
 
-		return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.currentTokenData())
+		return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.data)
 	}
 }
 
@@ -303,5 +289,5 @@ func (p *parser) statement() (statement, error) {
 
 func (p *parser) syntaxError(message string) error {
 	//p.currentIndex = len(p.tokens) - 1
-	return fmt.Errorf("[%s %s] %s", p.fileName, p.currentTokenPos(), message)
+	return fmt.Errorf("[%s %s] %s", p.fileName, p.pos, message)
 }

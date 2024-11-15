@@ -10,7 +10,7 @@ func TestParser_Parse(t *testing.T) {
 	tests := []struct {
 		name         string
 		fileName     string
-		tokens       []token
+		tokens       []Token
 		want         *Boc
 		wantErr      bool
 		errorMessage string
@@ -18,7 +18,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Empty file",
 			fileName: "empty.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(0, 0), EOF, "EOF"},
 			},
 			want: &Boc{
@@ -33,7 +33,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Nested directory",
 			fileName: "parent/simple.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(0, 0), EOF, "EOF"},
 			},
 			want: &Boc{
@@ -56,7 +56,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Literal expressions",
 			fileName: "literals.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), INTEGER, "1"},
 				{pos(1, 2), EOF, "EOF"},
 			},
@@ -77,7 +77,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Literal expressions string",
 			fileName: "string_literal.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), STRING, "Hello world"},
 				{pos(1, 12), EOF, "EOF"},
 			},
@@ -98,7 +98,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Block literal",
 			fileName: "block_literal.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), LBRACE, "{"},
 				{pos(1, 2), RBRACE, "}"},
 				{pos(1, 3), EOF, "EOF"},
@@ -123,7 +123,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Two literals",
 			fileName: "two_literals.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), INTEGER, "1"},
 				{pos(1, 2), COMMA, ","},
 				{pos(1, 3), STRING, "Hello world"},
@@ -151,7 +151,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Invalid expression expression",
 			fileName: "invalid_expression.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), INTEGER, "1"},
 				{pos(1, 2), INTEGER, "2"},
 				{pos(1, 3), EOF, "EOF"},
@@ -161,7 +161,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Two literals with new line",
 			fileName: "two_literals_newline.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), INTEGER, "1"},
 				{pos(1, 2), COMMA, "\n"},
 				{pos(2, 1), STRING, "Hello world"},
@@ -189,7 +189,7 @@ func TestParser_Parse(t *testing.T) {
 		{
 			name:     "Array literal []Int",
 			fileName: "array_literal.yz",
-			tokens: []token{
+			tokens: []Token{
 				{pos(1, 1), LBRACKET, "["},
 				{pos(1, 2), RBRACKET, "]"},
 				{pos(1, 3), TYPEIDENTIFIER, "Int"},
