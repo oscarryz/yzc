@@ -12,20 +12,6 @@ func prettyPrint(v interface{}, indent int) string {
 	case *Boc:
 		sb.WriteString(indentStr(indent) + "Boc {\n")
 		sb.WriteString(indentStr(indent+2) + "Name: " + v.Name + "\n")
-		if v.bocType != nil {
-			sb.WriteString(prettyPrint(v.bocType, indent+2))
-		}
-		if v.blockBody != nil {
-			sb.WriteString(prettyPrint(v.blockBody, indent+2))
-		}
-		sb.WriteString(indentStr(indent) + "}\n")
-	case *blockType:
-		sb.WriteString(indentStr(indent) + "blockType {\n")
-		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
-		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
-		sb.WriteString(indentStr(indent) + "}\n")
-	case *blockBody:
-		sb.WriteString(indentStr(indent) + "blockBody {\n")
 		if v.expressions == nil {
 			sb.WriteString(prettyPrint("exprs: nil", indent+2))
 		}

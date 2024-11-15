@@ -32,13 +32,13 @@ const (
 	STRING  // str
 
 	// identifiers
-	IDENTIFIER        // id
-	TYPEIDENTIFIER    // tid
-	NONWORDIDENTIFIER // nwid
-	BREAK             // BREAK
-	CONTINUE          // CONTINUE
-	RETURN            // RETURN
-	Unexpected        // Unexpected
+	IDENTIFIER          // id
+	TYPE_IDENTIFIER     // tid
+	NON_WORD_IDENTIFIER // nwid
+	BREAK               // BREAK
+	CONTINUE            // CONTINUE
+	RETURN              // RETURN
+	Unexpected          // Unexpected
 )
 
 type tokenType uint
@@ -88,7 +88,7 @@ func pos(line, col int) position {
 func (t Token) String() string {
 
 	switch t.tt {
-	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER, TYPEIDENTIFIER:
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, NON_WORD_IDENTIFIER, TYPE_IDENTIFIER:
 		return fmt.Sprintf("%s:%s ", t.tt, t.data)
 	default:
 		return fmt.Sprintf("%v ", t.tt)
@@ -210,7 +210,7 @@ func lookupIdent(identifier string) tokenType {
 		return IDENTIFIER
 	}
 	if unicode.IsUpper(runes[0]) {
-		return TYPEIDENTIFIER
+		return TYPE_IDENTIFIER
 	}
 	switch identifier {
 	case "=":
@@ -229,7 +229,7 @@ func lookupIdent(identifier string) tokenType {
 			allNonLetter = allNonLetter && !unicode.IsLetter(r)
 		}
 		if allNonLetter {
-			return NONWORDIDENTIFIER
+			return NON_WORD_IDENTIFIER
 		}
 	}
 	return IDENTIFIER
@@ -404,7 +404,7 @@ func (t *tokenizer) tokenize() ([]Token, error) {
 func (t *tokenizer) addCommaIfNeeded() {
 	if len(t.tokens) > 0 {
 		last := t.tokens[len(t.tokens)-1]
-		if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NONWORDIDENTIFIER || last.tt == TYPEIDENTIFIER || last.tt == RBRACE || last.tt == RPAREN || last.tt == RBRACKET {
+		if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NON_WORD_IDENTIFIER || last.tt == TYPE_IDENTIFIER || last.tt == RBRACE || last.tt == RPAREN || last.tt == RBRACKET {
 			t.addToken(COMMA, ",")
 		}
 	}

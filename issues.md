@@ -1,13 +1,30 @@
-## Fix parser movement methods
+## The initial split of filename into directories should create an AST of ShortDecl
 
-- nextToken()
-- peek()
-- consume()
-- expect()
+For the input `a/b/c.yz`
 
-They all interact in a weird way, fix it so they are easier to use to validate the grammar.
+The AST should be something like :
 
-See for instance dictionary validation in the [parser.go](internal/parser.go) file.
+```
+ ShortDcl { 
+        key: a , 
+        val: Boc{ 
+                key: b,
+                val: ShortDecl { 
+                    key: c ,
+                    val: {}     
+        }
+    }
+}
+```
+
+## Remove the Boc.name property
+
+Is not needed
+
+## Uncomment the dictionary test
+
+It was commited by accident
+
 ## Add Dict type to the struct
 
 Just like ArrayList has a type, Dict should have a type, it currently uses `[]` as value.
@@ -15,15 +32,6 @@ Just like ArrayList has a type, Dict should have a type, it currently uses `[]` 
 ## Change Boc type to expression
 
 ## Handle Array of Dictionaries
-
-## Consider simplifying  Boc > BlockBody
-
-Currently, a Boc has a BlockBody which is a list of expressios and statments, but probably a boc could be a list of expressions and statements itself
-Do we need both?
-
-## Does a Boc need a name?
-
-The name is always the variable to which it gets assigned, so probably is not needed
 
 ## Simplify Array type or types for that matter
 

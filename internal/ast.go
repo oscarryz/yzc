@@ -4,9 +4,9 @@ import "fmt"
 
 type (
 	Boc struct {
-		Name      string
-		bocType   *blockType
-		blockBody *blockBody
+		Name        string
+		expressions []expression
+		statements  []statement
 	}
 
 	expression interface {
@@ -16,14 +16,6 @@ type (
 	statement interface {
 		value() string
 		String() string
-	}
-	blockType struct {
-		pos position
-		val string
-	}
-	blockBody struct {
-		expressions []expression
-		statements  []statement
 	}
 
 	BasicLit struct {
@@ -67,14 +59,6 @@ func (boc *Boc) value() string {
 
 func (boc *Boc) String() string {
 	return prettyPrint(boc, 0)
-}
-
-func (bt *blockType) String() string {
-	return prettyPrint(bt, 0)
-}
-
-func (bb *blockBody) String() string {
-	return prettyPrint(bb, 0)
 }
 
 func (bl *BasicLit) String() string {

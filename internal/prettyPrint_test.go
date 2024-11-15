@@ -14,62 +14,26 @@ func TestPrettyPrint(t *testing.T) {
 			name: "Boc",
 			input: &Boc{
 				Name: "test_boc",
-				blockBody: &blockBody{
-					expressions: []expression{
-						&BasicLit{
-							pos: pos(1, 1),
-							tt:  STRING,
-							val: "Hello",
-						},
-					},
-					statements: []statement{},
-				},
-			},
-			expected: `Boc {
-    Name: test_boc
-    blockBody {
-        BasicLit {
-            pos: line: 1 col: 1
-            tt: str
-            val: Hello
-        }
-    }
-}
-`,
-		},
-		{
-			name: "blockType",
-			input: &blockType{
-				pos: pos(1, 1),
-				val: "Int",
-			},
-			expected: `blockType {
-    pos: line: 1 col: 1
-    val: Int
-}
-`,
-		},
-		{
-			name: "blockBody",
-			input: &blockBody{
 				expressions: []expression{
 					&BasicLit{
 						pos: pos(1, 1),
-						tt:  INTEGER,
-						val: "1",
+						tt:  STRING,
+						val: "Hello",
 					},
 				},
 				statements: []statement{},
 			},
-			expected: `blockBody {
+			expected: `Boc {
+    Name: test_boc
     BasicLit {
         pos: line: 1 col: 1
-        tt: int
-        val: 1
+        tt: str
+        val: Hello
     }
 }
 `,
 		},
+
 		{
 			name: "BasicLit",
 			input: &BasicLit{
@@ -124,18 +88,6 @@ func TestPrettyPrint(t *testing.T) {
 			name:     "\tempty struct{}\n",
 			input:    &empty{},
 			expected: "<empty>\n",
-		},
-		{
-			name: "BlockBody with nil expressions",
-			input: &blockBody{
-				expressions: nil,
-				statements:  nil,
-			},
-			expected: `blockBody {
-    exprs: nil
-    stmts: nil
-}
-`,
 		},
 	}
 

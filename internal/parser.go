@@ -6,7 +6,6 @@ import (
 )
 
 type parser struct {
-	fileName     string
 	tokens       []Token
 	currentIndex int
 	Token
@@ -14,13 +13,35 @@ type parser struct {
 }
 
 func Parse(fileName string, tokens []Token) (*Boc, error) {
-	p := newParser(fileName, tokens)
-	return p.parse()
+	p := newParser(tokens)
+	// splits the file Name into directories and file Name without extension
+	parts := strings.Split(fileName, "/")
+	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
+
+	leaf, e := p.boc()
+	if e != nil {
+		return nil, e
+	}
+	leaf.Name = fileNameWithoutExtension
+	// Creates the parent bocs
+	// for a/b/c.yz will creates
+	// Boc{ Name: "a", bocType: nil, boc:
+	//		Boc: { Name: "b", bocType: nil, boc:
+	//			Boc: { Name: "c", bocType: nil, boc: nil } } }
+	for i := len(parts) - 2; i >= 0; i-- {
+		leaf = &Boc{
+			Name:        parts[i],
+			expressions: []expression{leaf},
+			statements:  []statement{},
+		}
+	}
+
+	return leaf, nil
+
 }
 
-func newParser(fileName string, tokens []Token) *parser {
+func newParser(tokens []Token) *parser {
 	return &parser{
-		fileName,
 		tokens,
 		0,
 		tokens[0],
@@ -43,47 +64,20 @@ func (p *parser) expect(t tokenType) error {
 }
 
 // parse parses the input file and returns the Boc.
-func (p *parser) parse() (*Boc, error) {
-	// splits the file Name into directories and file Name without extension
-	parts := strings.Split(p.fileName, "/")
-	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
 
-	leaf, e := p.boc()
-	if e != nil {
-		return nil, e
-	}
-	leaf.Name = fileNameWithoutExtension
-	// Creates the parent bocs
-	// for a/b/c.yz will creates
-	// Boc{ Name: "a", bocType: nil, blockBody:
-	//		Boc: { Name: "b", bocType: nil, blockBody:
-	//			Boc: { Name: "c", bocType: nil, blockBody: nil } } }
-	for i := len(parts) - 2; i >= 0; i-- {
-		leaf = &Boc{
-			Name:    parts[i],
-			bocType: nil,
-			blockBody: &blockBody{
-				[]expression{leaf},
-				[]statement{},
-			},
-		}
-	}
-
-	return leaf, nil
-}
-
-// Boc ::= block_body
-func (p *parser) boc() (*Boc, error) {
-	bb, e := p.blockBody()
-	if e != nil {
-		return nil, e
-	}
-	return &Boc{"", nil, bb}, nil
-}
+//// Boc ::= block_body
+//func (p *parser) boc() (*Boc, error) {
+//	bb, e := p.boc()
+//	if e != nil {
+//		return nil, e
+//	}
+//	return &Boc{"", bb}, nil
+//}
 
 // block_body ::= (expression | statement) ((","|"\n") (expression | statement))* | ""
-func (p *parser) blockBody() (*blockBody, error) {
-	bb := &blockBody{
+func (p *parser) boc() (*Boc, error) {
+	bb := &Boc{
+		"",
 		[]expression{},
 		[]statement{},
 	}
@@ -140,7 +134,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 func (p *parser) expression() (expression, error) {
 	token := p.tt
 	switch token {
-	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
+	case INTEGER, DECIMAL, STRING, IDENTIFIER, NON_WORD_IDENTIFIER:
 		return p.parseLiteralOrShortDeclaration()
 	case LBRACE:
 		p.consume() // consume the {
@@ -179,24 +173,23 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 }
 
 func (p *parser) parseBlockLiteral() (expression, error) {
-	bb, err := p.blockBody()
-	return &Boc{"", nil, bb}, err
+	return p.boc()
 }
 
 func (p *parser) parseArrayOrDictionaryLiteral(ap position) (expression, error) {
 	if p.tt == RBRACKET {
 		p.consume()
 		return p.parseTypedArrayLiteral(ap)
-	} else if p.tt == TYPEIDENTIFIER {
+	} else if p.tt == TYPE_IDENTIFIER {
 		return p.parseEmptyDictionaryLiteral(ap)
 	} else {
 		return p.parseNonEmptyArrayOrDictionaryLiteral(ap)
 	}
 }
 
-// e.g [] Int, current position is at the TYPEIDENTIFIER
+// e.g [] Int, current position is at the TYPE_IDENTIFIER
 func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
-	err := p.expect(TYPEIDENTIFIER)
+	err := p.expect(TYPE_IDENTIFIER)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +208,7 @@ func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
 		return nil, err
 	}
 	p.consume() // consume the RBRACKET
-	if err := p.expect(TYPEIDENTIFIER); err != nil {
+	if err := p.expect(TYPE_IDENTIFIER); err != nil {
 		return nil, err
 	}
 	valType := p.data
@@ -276,7 +269,7 @@ func createArrayLiteral(ap position, exps []expression) (expression, error) {
 		return &ArrayLit{ap, at, exps}, nil
 	case *Boc:
 		bl, _ := exps[0].(*Boc)
-		bt := &Boc{bl.Name, nil, &blockBody{[]expression{}, []statement{}}}
+		bt := &Boc{bl.Name, []expression{}, []statement{}}
 		return &ArrayLit{ap, bt, exps}, nil
 	default:
 		return &ArrayLit{ap, exps[0], exps}, nil
@@ -289,5 +282,5 @@ func (p *parser) statement() (statement, error) {
 
 func (p *parser) syntaxError(message string) error {
 	//p.currentIndex = len(p.tokens) - 1
-	return fmt.Errorf("[%s %s] %s", p.fileName, p.pos, message)
+	return fmt.Errorf("[%s] %s", p.pos, message)
 }
