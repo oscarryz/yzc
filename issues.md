@@ -1,32 +1,3 @@
-## Add Dict type to the struct
-
-Just like ArrayList has a type, Dict should have a type, it currently uses `[]` as value.
-
-## Change Boc type to expression
-
-## Consider using comma to separate array elements
-
-
-```
-[1 2 3]
-```
-
-vs
-
-```js
-[1, 2, 3]
-```
-## Handle Array of Dictionaries
-
-## Evaluate Boc + BlockBody
-
-Do we need both?
-
-## Simplify Array type
-
-It uses an expression which currently is the same expression (or almost) as the first element
-probably there could be some other way
-
 ## Fix parser movement methods
 
 - nextToken()
@@ -37,10 +8,29 @@ probably there could be some other way
 They all interact in a weird way, fix it so they are easier to use to validate the grammar.
 
 See for instance dictionary validation in the [parser.go](internal/parser.go) file.
+## Add Dict type to the struct
+
+Just like ArrayList has a type, Dict should have a type, it currently uses `[]` as value.
+
+## Change Boc type to expression
+
+## Handle Array of Dictionaries
+
+## Consider simplifying  Boc > BlockBody
+
+Currently, a Boc has a BlockBody which is a list of expressios and statments, but probably a boc could be a list of expressions and statements itself
+Do we need both?
 
 ## Does a Boc need a name?
 
 The name is always the variable to which it gets assigned, so probably is not needed
+
+## Simplify Array type or types for that matter
+
+It uses an expression which currently is the same expression (or almost) as the first element
+probably there could be some other way
+
+Probably well get there when we start doing declaration statements.
 
 ## Create an example of the generated Go code
 

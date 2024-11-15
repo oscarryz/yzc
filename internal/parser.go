@@ -8,7 +8,7 @@ import (
 type parser struct {
 	fileName     string
 	tokens       []token
-	currentToken int
+	currentIndex int
 	prog         *Boc
 }
 
@@ -27,45 +27,45 @@ func newParser(fileName string, tokens []token) *parser {
 }
 
 // token returns the current token without advancing the parser.
-func (p *parser) token() token {
-	return p.tokenPlus(0)
+func (p *parser) currentToken() token {
+	return p.peekBy(0)
 }
 
-// nextToken returns the current token and advances the parser.
-func (p *parser) nextToken() token {
-	if p.currentToken >= len(p.tokens) {
+// currentAndAdvance returns the current token and advances the parser.
+func (p *parser) currentAndAdvance() token {
+	if p.currentIndex >= len(p.tokens) {
 		return token{pos(0, 0), EOF, "EOF"}
 	}
-	t := p.token()
-	p.currentToken++
+	t := p.currentToken()
+	p.currentIndex++
 	return t
 }
 
-// rewind rewinds the parser by n tokens.
-func (p *parser) rewind(n int) {
-	p.currentToken -= n
+// rewindBy rewinds the parser by n tokens.
+func (p *parser) rewindBy(n int) {
+	p.currentIndex -= n
 }
 
-// tokenPlus returns the token i tokens ahead of the current token.
-func (p *parser) tokenPlus(i int) token {
-	return p.tokens[p.currentToken+i]
+// peekBy returns the token i tokens ahead of the current token.
+func (p *parser) peekBy(i int) token {
+	return p.tokens[p.currentIndex+i]
 }
 
 // consume advances the parser by one token.
 func (p *parser) consume() {
-	p.currentToken++
+	p.currentIndex++
 }
 
 // expect returns true if the next token is of type t.
 func (p *parser) expect(t tokenType) error {
-	if p.nextToken().tt != t {
+	if p.currentAndAdvance().tt != t {
 		return p.syntaxError(fmt.Sprintf("expected %s", t))
 	}
 	return nil
 }
 
 func (p *parser) peek() token {
-	return p.tokenPlus(1)
+	return p.peekBy(1)
 }
 
 // parse parses the input file and returns the Boc.
@@ -133,7 +133,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
-		switch p.token().tt {
+		switch p.currentToken().tt {
 		case COMMA:
 			p.consume()
 			continue
@@ -143,7 +143,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 		case EOF:
 			return bb, nil
 		default:
-			return nil, p.syntaxError("expected \",\", NEWLINE or RBRACE. Got \"" + p.token().data + "\"")
+			return nil, p.syntaxError("expected \",\", NEWLINE or RBRACE. Got \"" + p.currentToken().data + "\"")
 
 		}
 	}
@@ -164,11 +164,11 @@ func (p *parser) blockBody() (*blockBody, error) {
 //    | variable_short_definition
 
 func (p *parser) expression() (expression, error) {
-	token := p.token()
+	token := p.currentToken()
 
 	switch token.tt {
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
-		return p.parseLiteralOrShortDeclaration(token)
+		return p.parseLiteralOrShortDeclaration()
 	case LBRACE:
 		return p.parseBlockLiteral()
 	case RBRACE:
@@ -182,17 +182,20 @@ func (p *parser) expression() (expression, error) {
 	}
 }
 
-func (p *parser) parseLiteralOrShortDeclaration(token token) (expression, error) {
-	if p.peek().tt == COLON {
-		p.consume()
-		p.consume()
+// a, 1, "hello", 1.0
+// a: 1, b: "hello", c: 1.0
+func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
+	token := p.currentToken()
+	p.consume() // consume the  literal that brought us here
+	if p.currentToken().tt == COLON {
+		p.consume() // consume the COLON
 		val, err := p.expression()
 		if err != nil {
 			return nil, err
 		}
 		return &ShortDeclaration{token.pos, &BasicLit{token.pos, token.tt, token.data}, val}, nil
 	}
-	p.consume()
+	//p.consume()
 	return &BasicLit{token.pos, token.tt, token.data}, nil
 }
 
@@ -206,18 +209,18 @@ func (p *parser) parseBlockLiteral() (expression, error) {
 }
 
 func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
-	ap := p.token().pos
+	ap := p.currentToken().pos
 	p.consume()
 
-	// s/p.token()/peek
-	if p.token().tt == RBRACKET {
+	// s/p.currentToken()/peek
+	if p.currentToken().tt == RBRACKET {
 		p.consume()
 		err := p.expect(TYPEIDENTIFIER)
 		if err != nil {
 			return nil, err
 		}
 		return p.parseTypedArrayLiteral(ap)
-	} else if p.token().tt == TYPEIDENTIFIER {
+	} else if p.currentToken().tt == TYPEIDENTIFIER {
 		return p.parseEmptyDictionaryLiteral(ap)
 	} else {
 		return p.parseNonEmptyArrayOrDictionaryLiteral(ap)
@@ -226,23 +229,23 @@ func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
 
 func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 	//p.consume()
-	p.rewind(1)
-	ct := p.token()
+	p.rewindBy(1)
+	ct := p.currentToken()
 	p.consume()
 	return &ArrayLit{ap, &BasicLit{ct.pos, ct.tt, ct.data}, []expression{}}, nil
 }
 
 func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
 	//p.consume()
-	keyType := p.nextToken().data
+	keyType := p.currentAndAdvance().data
 	if err := p.expect(RBRACKET); err != nil {
 		return nil, err
 	}
 	if err := p.expect(TYPEIDENTIFIER); err != nil {
 		return nil, err
 	}
-	p.rewind(1)
-	valType := p.nextToken().data
+	p.rewindBy(1)
+	valType := p.currentAndAdvance().data
 	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 }
 
@@ -269,15 +272,15 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return nil, err
 		}
 
-		nt := p.nextToken()
+		nt := p.currentAndAdvance()
 		if nt.tt == COMMA {
-			nt = p.nextToken()
+			nt = p.currentAndAdvance()
 			if nt.tt != RBRACKET {
-				p.rewind(1)
+				p.rewindBy(1)
 				continue
 			} else {
-				p.rewind(1)
-				nt = p.token()
+				p.rewindBy(1)
+				nt = p.currentToken()
 			}
 
 		}
@@ -287,7 +290,7 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 				return dl, nil
 			}
 
-			p.rewind(1)
+			p.rewindBy(1)
 			switch exps[0].(type) {
 			case *ArrayLit:
 				al, _ := exps[0].(*ArrayLit)
@@ -302,8 +305,8 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 
 			}
 		} else {
-			p.rewind(1)
-			return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.token().data)
+			p.rewindBy(1)
+			return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.currentToken().data)
 		}
 	}
 }
@@ -312,6 +315,6 @@ func (p *parser) statement() (statement, error) {
 }
 
 func (p *parser) syntaxError(message string) error {
-	//p.currentToken = len(p.tokens) - 1
-	return fmt.Errorf("[%s %s] %s", p.fileName, p.token().pos, message)
+	//p.currentIndex = len(p.tokens) - 1
+	return fmt.Errorf("[%s %s] %s", p.fileName, p.currentToken().pos, message)
 }
