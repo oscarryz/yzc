@@ -41,11 +41,6 @@ func (p *parser) currentAndAdvance() token {
 	return t
 }
 
-// rewindBy rewinds the parser by n tokens.
-func (p *parser) rewindBy(n int) {
-	p.currentIndex -= n
-}
-
 // peekBy returns the token i tokens ahead of the current token.
 func (p *parser) peekBy(i int) token {
 	return p.tokens[p.currentIndex+i]
@@ -58,7 +53,7 @@ func (p *parser) consume() {
 
 // expect returns true if the next token is of type t.
 func (p *parser) expect(t tokenType) error {
-	if p.currentAndAdvance().tt != t {
+	if p.currentToken().tt != t {
 		return p.syntaxError(fmt.Sprintf("expected %s", t))
 	}
 	return nil
@@ -133,6 +128,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 			}
 		}
 
+		// p.token
 		switch p.currentToken().tt {
 		case COMMA:
 			p.consume()
@@ -143,7 +139,7 @@ func (p *parser) blockBody() (*blockBody, error) {
 		case EOF:
 			return bb, nil
 		default:
-			return nil, p.syntaxError("expected \",\", NEWLINE or RBRACE. Got \"" + p.currentToken().data + "\"")
+			return nil, p.syntaxError("expected \",\" or \"}\". Got \"" + p.currentToken().data + "\"")
 
 		}
 	}
@@ -151,30 +147,32 @@ func (p *parser) blockBody() (*blockBody, error) {
 
 }
 
-//   expression ::= block_invocation
-//    | method_invocation
-//    | parenthesized_expressions
-//    | type_instantiation
-//    | array_access
-//    | dictionary_access
-//    | member_access
-//    | literal
-//    | variable
-//    | assignment
-//    | variable_short_definition
-
+// expression ::= block_invocation
+//
+//	| method_invocation
+//	| parenthesized_expressions
+//	| type_instantiation
+//	| array_access
+//	| dictionary_access
+//	| member_access
+//	| literal
+//	| variable
+//	| assignment
+//	| variable_short_definition
 func (p *parser) expression() (expression, error) {
 	token := p.currentToken()
-
 	switch token.tt {
 	case INTEGER, DECIMAL, STRING, IDENTIFIER, NONWORDIDENTIFIER:
 		return p.parseLiteralOrShortDeclaration()
 	case LBRACE:
+		p.consume() // consume the {
 		return p.parseBlockLiteral()
 	case RBRACE:
 		return &empty{}, nil
 	case LBRACKET:
-		return p.parseArrayOrDictionaryLiteral()
+		ap := p.currentToken().pos
+		p.consume()
+		return p.parseArrayOrDictionaryLiteral(ap)
 	case EOF:
 		return &empty{}, nil
 	default:
@@ -187,38 +185,26 @@ func (p *parser) expression() (expression, error) {
 func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 	token := p.currentToken()
 	p.consume() // consume the  literal that brought us here
+	bl := &BasicLit{token.pos, token.tt, token.data}
 	if p.currentToken().tt == COLON {
 		p.consume() // consume the COLON
 		val, err := p.expression()
 		if err != nil {
 			return nil, err
 		}
-		return &ShortDeclaration{token.pos, &BasicLit{token.pos, token.tt, token.data}, val}, nil
+		return &ShortDeclaration{token.pos, bl, val}, nil
 	}
-	//p.consume()
-	return &BasicLit{token.pos, token.tt, token.data}, nil
+	return bl, nil
 }
 
 func (p *parser) parseBlockLiteral() (expression, error) {
-	p.consume()
 	bb, err := p.blockBody()
-	if err != nil {
-		return nil, err
-	}
-	return &Boc{"", nil, bb}, nil
+	return &Boc{"", nil, bb}, err
 }
 
-func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
-	ap := p.currentToken().pos
-	p.consume()
-
-	// s/p.currentToken()/peek
+func (p *parser) parseArrayOrDictionaryLiteral(ap position) (expression, error) {
 	if p.currentToken().tt == RBRACKET {
 		p.consume()
-		err := p.expect(TYPEIDENTIFIER)
-		if err != nil {
-			return nil, err
-		}
 		return p.parseTypedArrayLiteral(ap)
 	} else if p.currentToken().tt == TYPEIDENTIFIER {
 		return p.parseEmptyDictionaryLiteral(ap)
@@ -227,25 +213,30 @@ func (p *parser) parseArrayOrDictionaryLiteral() (expression, error) {
 	}
 }
 
+// e.g [] Int, current position is at the TYPEIDENTIFIER
 func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
-	//p.consume()
-	p.rewindBy(1)
+	err := p.expect(TYPEIDENTIFIER)
+	if err != nil {
+		return nil, err
+	}
 	ct := p.currentToken()
 	p.consume()
 	return &ArrayLit{ap, &BasicLit{ct.pos, ct.tt, ct.data}, []expression{}}, nil
 }
 
+// [ String ] Int
 func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
-	//p.consume()
-	keyType := p.currentAndAdvance().data
+	keyType := p.currentToken().data
+	p.consume()
 	if err := p.expect(RBRACKET); err != nil {
 		return nil, err
 	}
+	p.consume() // consume the RBRACKET
 	if err := p.expect(TYPEIDENTIFIER); err != nil {
 		return nil, err
 	}
-	p.rewindBy(1)
-	valType := p.currentAndAdvance().data
+	valType := p.currentToken().data
+	p.consume()
 	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 }
 
@@ -272,42 +263,41 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return nil, err
 		}
 
-		nt := p.currentAndAdvance()
-		if nt.tt == COMMA {
-			nt = p.currentAndAdvance()
-			if nt.tt != RBRACKET {
-				p.rewindBy(1)
-				continue
-			} else {
-				p.rewindBy(1)
-				nt = p.currentToken()
-			}
+		ct := p.currentToken()
+		p.consume()
 
+		if ct.tt == COMMA {
+			ct = p.currentToken()
+			if ct.tt != RBRACKET {
+				continue
+			}
 		}
-		if nt.tt == RBRACKET {
-			p.consume()
+
+		if ct.tt == RBRACKET {
 			if insideDict {
+				p.consume()
 				return dl, nil
 			}
-
-			p.rewindBy(1)
-			switch exps[0].(type) {
-			case *ArrayLit:
-				al, _ := exps[0].(*ArrayLit)
-				at := &ArrayLit{al.pos, al.arrayType, []expression{}}
-				return &ArrayLit{ap, at, exps}, nil
-			case *Boc:
-				bl, _ := exps[0].(*Boc)
-				bt := &Boc{bl.Name, nil, &blockBody{[]expression{}, []statement{}}}
-				return &ArrayLit{ap, bt, exps}, nil
-			default:
-				return &ArrayLit{ap, exps[0], exps}, nil
-
-			}
-		} else {
-			p.rewindBy(1)
-			return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.currentToken().data)
+			return createArrayLiteral(ap, exps)
 		}
+
+		return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.currentToken().data)
+	}
+}
+
+func createArrayLiteral(ap position, exps []expression) (expression, error) {
+	switch exps[0].(type) {
+	case *ArrayLit:
+		al, _ := exps[0].(*ArrayLit)
+		at := &ArrayLit{al.pos, al.arrayType, []expression{}}
+		return &ArrayLit{ap, at, exps}, nil
+	case *Boc:
+		bl, _ := exps[0].(*Boc)
+		bt := &Boc{bl.Name, nil, &blockBody{[]expression{}, []statement{}}}
+		return &ArrayLit{ap, bt, exps}, nil
+	default:
+		return &ArrayLit{ap, exps[0], exps}, nil
+
 	}
 }
 func (p *parser) statement() (statement, error) {

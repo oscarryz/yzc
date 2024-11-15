@@ -156,7 +156,7 @@ func TestParser_Parse(t *testing.T) {
 				{pos(1, 2), INTEGER, "2"},
 				{pos(1, 3), EOF, "EOF"},
 			}, wantErr: true,
-			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected \",\", NEWLINE or RBRACE. Got \"2\"",
+			errorMessage: "[invalid_expression.yz line: 1 col: 2] expected \",\" or \"}\". Got \"2\"",
 		},
 		{
 			name:     "Two literals with new line",
