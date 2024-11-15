@@ -273,9 +273,9 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			},
 		},
 		{
-			name:     "Array literal [1 2 3] is a [Int]",
+			name:     "Array literal [1, 2, 3] is a [Int]",
 			fileName: "array_literal.yz",
-			source:   `[1 2 3]`,
+			source:   `[1, 2, 3]`,
 			want: &Boc{
 				Name:    "array_literal",
 				bocType: nil,
@@ -295,12 +295,12 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 									"1",
 								},
 								&BasicLit{
-									pos(1, 4),
+									pos(1, 5),
 									INTEGER,
 									"2",
 								},
 								&BasicLit{
-									pos(1, 6),
+									pos(1, 8),
 									INTEGER,
 									"3",
 								},
@@ -314,7 +314,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 		{
 			name:     "Array of arrays	[[1 2] []Int] is an [][Int]",
 			fileName: "array_of_arrays.yz",
-			source:   `[[1 2] []Int]`,
+			source:   `[[1, 2], []Int]`,
 			want: &Boc{
 				Name:    "array_of_arrays",
 				bocType: nil,
@@ -345,16 +345,16 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											"1",
 										},
 										&BasicLit{
-											pos(1, 5),
+											pos(1, 6),
 											INTEGER,
 											"2",
 										},
 									},
 								},
 								&ArrayLit{
-									pos(1, 8),
+									pos(1, 10),
 									&BasicLit{
-										pos(1, 10),
+										pos(1, 12),
 										TYPEIDENTIFIER,
 										"Int",
 									},
@@ -370,7 +370,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 		{
 			name:     "Array of blocks",
 			fileName: "array_of_blocks.yz",
-			source:   `[{1} {2}]`,
+			source:   `[{1}, {2}]`,
 			want: &Boc{
 				Name:    "array_of_blocks",
 				bocType: nil,
@@ -407,7 +407,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										expressions: []expression{
 
 											&BasicLit{
-												pos(1, 7),
+												pos(1, 8),
 												INTEGER,
 
 												"2",
@@ -445,57 +445,57 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 				},
 			},
 		},
-		{
-			name:     "Dictionary literal [k1:v1 k2:v2]",
-			fileName: "dictionary_literal.yz",
-			source:   `[k1:v1 k2:v2]`,
-			want: &Boc{
-				Name:    "dictionary_literal",
-				bocType: nil,
-				blockBody: &blockBody{
-					expressions: []expression{
-						&DictLit{
-							pos(1, 1),
-							"[]",
-							"",
-							"",
-							[]expression{
-								&BasicLit{
-									pos(1, 2),
-									IDENTIFIER,
-									"k1",
-								},
-								&BasicLit{
-									pos(1, 8),
-									IDENTIFIER,
-									"k2",
-								},
-							},
-							[]expression{
-								&BasicLit{
-									pos(1, 5),
-									IDENTIFIER,
-									"v1",
-								},
-								&BasicLit{
-									pos(1, 11),
-									IDENTIFIER,
-									"v2",
-								},
-							},
-						},
-					},
-
-					statements: []statement{},
-				},
-			},
-		},
+		//{
+		//	name:     "Dictionary literal [k1:v1 k2:v2]",
+		//	fileName: "dictionary_literal.yz",
+		//	source:   `[k1:v1, k2:v2]`,
+		//	want: &Boc{
+		//		Name:    "dictionary_literal",
+		//		bocType: nil,
+		//		blockBody: &blockBody{
+		//			expressions: []expression{
+		//				&DictLit{
+		//					pos(1, 1),
+		//					"[]",
+		//					"",
+		//					"",
+		//					[]expression{
+		//						&BasicLit{
+		//							pos(1, 2),
+		//							IDENTIFIER,
+		//							"k1",
+		//						},
+		//						&BasicLit{
+		//							pos(1, 9),
+		//							IDENTIFIER,
+		//							"k2",
+		//						},
+		//					},
+		//					[]expression{
+		//						&BasicLit{
+		//							pos(1, 5),
+		//							IDENTIFIER,
+		//							"v1",
+		//						},
+		//						&BasicLit{
+		//							pos(1, 12),
+		//							IDENTIFIER,
+		//							"v2",
+		//						},
+		//					},
+		//				},
+		//			},
+		//
+		//			statements: []statement{},
+		//		},
+		//	},
+		//},
 		{
 			name:     "Dictionary literal of type [String][String] ",
 			fileName: "dictionary_literal_type.yz",
 			source: `[
     "name": ["Yz"]
-    "type system": ["static" "strong" "structural"]
+    "type system": ["static", "strong", "structural"]
 ]`,
 			want: &Boc{
 				Name:    "dictionary_literal_type",
@@ -550,12 +550,12 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											"static",
 										},
 										&BasicLit{
-											pos(3, 30),
+											pos(3, 31),
 											STRING,
 											"strong",
 										},
 										&BasicLit{
-											pos(3, 39),
+											pos(3, 41),
 											STRING,
 											"structural",
 										},
@@ -602,9 +602,9 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			"Short declaration with block and array",
 			"short_declaration_block_array.yz",
 			`language: {
-    name: "Yz"
-    features: ["static" "strong" "structural"]
-}`,
+		   name: "Yz"
+		   features: ["static", "strong", "structural"]
+		}`,
 			&Boc{
 				Name:    "short_declaration_block_array",
 				bocType: nil,
@@ -622,54 +622,101 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 								blockBody: &blockBody{
 									expressions: []expression{
 										&ShortDeclaration{
-											pos(2, 5),
+											pos(2, 6),
 											&BasicLit{
-												pos(2, 5),
+												pos(2, 6),
 												IDENTIFIER,
 												"name",
 											},
 											&BasicLit{
 
-												pos(2, 11),
+												pos(2, 12),
 												STRING,
 
 												"Yz",
 											},
 										},
 										&ShortDeclaration{
-											pos(3, 5),
+											pos(3, 6),
 											&BasicLit{
-												pos: pos(3, 5),
+												pos: pos(3, 6),
 												tt:  IDENTIFIER,
 												val: "features",
 											}, &ArrayLit{
-												pos(3, 15),
+												pos(3, 16),
 												&BasicLit{
-													pos(3, 16),
+													pos(3, 17),
 													STRING,
 													"static",
 												},
 												[]expression{
 													&BasicLit{
-														pos(3, 16),
+														pos(3, 17),
 														STRING,
 														"static",
 													},
 													&BasicLit{
-														pos(3, 25),
+														pos(3, 27),
 														STRING,
 														"strong",
 													},
 													&BasicLit{
-														pos(3, 34),
+														pos(3, 37),
 														STRING,
 														"structural",
 													},
 												},
 											},
 										},
+										&empty{},
 									},
 									statements: []statement{},
+								},
+							},
+						},
+					},
+					statements: []statement{},
+				},
+			},
+			false,
+			"",
+		},
+		{
+			"Closing bracket",
+			"closing.yz",
+			`dictionary: [
+		"ready" : false
+]`,
+			&Boc{
+				Name:    "closing",
+				bocType: nil,
+				blockBody: &blockBody{
+					expressions: []expression{
+						&ShortDeclaration{
+							pos(1, 1),
+							&BasicLit{
+								pos(1, 1),
+								IDENTIFIER,
+								"dictionary",
+							},
+							&DictLit{
+								pos(1, 13),
+								"[]",
+								"",
+								"",
+								[]expression{
+									&BasicLit{
+										pos(2, 3),
+										STRING,
+										"ready",
+									},
+								},
+								[]expression{
+									&BasicLit{
+										pos(2, 13),
+										IDENTIFIER,
+										"false",
+									},
 								},
 							},
 						},

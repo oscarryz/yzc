@@ -246,6 +246,8 @@ func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
 	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
 }
 
+// [ expression ("," expression)* ]
+// [ key ":" value ("," key ":" value)* ]
 func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression, error) {
 	var exps []expression
 	dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
@@ -267,12 +269,25 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return nil, err
 		}
 
-		if p.token().tt == RBRACKET {
+		nt := p.nextToken()
+		if nt.tt == COMMA {
+			nt = p.nextToken()
+			if nt.tt != RBRACKET {
+				p.rewind(1)
+				continue
+			} else {
+				p.rewind(1)
+				nt = p.token()
+			}
+
+		}
+		if nt.tt == RBRACKET {
 			p.consume()
 			if insideDict {
 				return dl, nil
 			}
 
+			p.rewind(1)
 			switch exps[0].(type) {
 			case *ArrayLit:
 				al, _ := exps[0].(*ArrayLit)
@@ -286,7 +301,9 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 				return &ArrayLit{ap, exps[0], exps}, nil
 
 			}
-
+		} else {
+			p.rewind(1)
+			return nil, p.syntaxError("expected \",\" or \"]\". Got " + p.token().data)
 		}
 	}
 }
