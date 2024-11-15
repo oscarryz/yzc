@@ -138,6 +138,18 @@ World!"`,
 			},
 		},
 		{
+			"Multiline string literals preserving indentation",
+			"test.yz",
+			// There are trailing spaces in the first line of the string
+			`"Hi,   
+	World!   .
+	."`,
+			[]token{
+				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hi,   \n\tWorld!   .\n\t."},
+				{pos: position{line: 3, col: 4}, tt: EOF, data: "EOF"},
+			},
+		},
+		{
 			"String literals with various escapes",
 			"test.yz",
 			`"The quick\nbrown fox\tjumps over\\the lazy dog\"She said, 'Hello'\\xUnknown escape"`,
@@ -167,15 +179,6 @@ World!"`,
 				{pos: position{line: 1, col: 24}, tt: STRING, data: "\"Four\""},
 				{pos: position{line: 1, col: 32}, tt: RBRACKET, data: "]"},
 				{pos: position{line: 1, col: 33}, tt: EOF, data: "EOF"},
-			},
-		},
-		{
-			"String literals with backticks",
-			"test.yz",
-			"`Hello, World!`",
-			[]token{
-				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hello, World!"},
-				{pos: position{line: 1, col: 16}, tt: EOF, data: "EOF"},
 			},
 		},
 		{
@@ -515,6 +518,12 @@ func TestTokenizer_SyntaxErr(t *testing.T) {
 			"test.yz",
 			`/*`,
 			fmt.Errorf("[test.yz: line:1: col:3]: Syntax error: unterminated comment"),
+		},
+		{
+			"Backtick strings",
+			"test.yz",
+			"`hola`",
+			fmt.Errorf("[test.yz: line:1: col:1]: Unexpected token `"),
 		},
 	}
 	for _, tt := range tests {

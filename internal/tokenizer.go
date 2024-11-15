@@ -38,7 +38,7 @@ const (
 	BREAK             // BREAK
 	CONTINUE          // CONTINUE
 	RETURN            // RETURN
-	ILLEGAL           // ILLEGAL
+	Unexpected        // Unexpected
 )
 
 type tokenType uint
@@ -67,7 +67,7 @@ type tokenizer struct {
 func (tt tokenType) String() string {
 	descriptions := [25]string{
 		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`,
-		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "ILLEGAL",
+		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "Unexpected",
 	}
 	vot := int(tt)
 	if vot > len(descriptions) {
@@ -179,7 +179,7 @@ func (t *tokenizer) skipMultilineComment() {
 		t.col = 0
 	}
 	if r == utf8.RuneError {
-		t.addToken(ILLEGAL, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated comment", t.filname, t.line, t.col))
+		t.addToken(Unexpected, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated comment", t.filname, t.line, t.col))
 		t.keepGoing = false
 		return
 	}
@@ -242,7 +242,7 @@ func (t *tokenizer) addStringLiteral() {
 	builder := strings.Builder{}
 	for r != opening {
 		if r == utf8.RuneError {
-			t.addToken(ILLEGAL, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated string literal", t.filname, t.line, t.col))
+			t.addToken(Unexpected, fmt.Sprintf("[%s: line:%d: col:%d]: Syntax error: unterminated string literal", t.filname, t.line, t.col))
 			t.keepGoing = false
 			return
 		}
@@ -328,13 +328,7 @@ func (t *tokenizer) addNegativeNumber() {
 func (t *tokenizer) tokenize() ([]token, error) {
 	for r := t.nextRune(); t.keepGoing; r = t.nextRune() {
 		if r == '\n' {
-			// if last token is identifier, literal , keyword or delimiter add comma
-			if len(t.tokens) > 0 {
-				last := t.tokens[len(t.tokens)-1]
-				if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NONWORDIDENTIFIER || last.tt == TYPEIDENTIFIER || last.tt == RBRACE || last.tt == RPAREN {
-					t.addToken(COMMA, ",")
-				}
-			}
+			t.addCommaIfNeeded()
 			t.line++
 			t.col = 0
 		}
@@ -364,11 +358,19 @@ func (t *tokenizer) tokenize() ([]token, error) {
 			t.addToken(COMMA, ",")
 		case '#':
 			t.addToken(HASH, "#")
-		case '"', '`', '\'':
+		case '"', '\'':
 			t.unReadRune(r)
 			t.addStringLiteral()
 		default:
-			if r == '/' {
+			switch {
+			case r == '-' && unicode.IsDigit(t.peek()):
+				t.unReadRune(r)
+				t.addNegativeNumber()
+				break
+			case unicode.IsDigit(r):
+				t.unReadRune(r)
+				t.addNumber()
+			case r == '/':
 				if t.peek() == '/' {
 					t.nextRune()
 					t.skipComment()
@@ -378,30 +380,32 @@ func (t *tokenizer) tokenize() ([]token, error) {
 					t.skipMultilineComment()
 					continue
 				}
-			}
-			if r == '-' && unicode.IsDigit(t.peek()) {
-				t.unReadRune(r)
-				t.addNegativeNumber()
-				break
-			}
-			if unicode.IsDigit(r) {
-				t.unReadRune(r)
-				t.addNumber()
-			} else if t.isIdentifier(r) {
+				fallthrough // add `/` as an identifier token
+			case t.isIdentifier(r):
 				t.unReadRune(r)
 				id := t.readIdentifier()
 				t.addToken(lookupIdent(id), id)
-			} else {
-				t.addToken(ILLEGAL, string(r))
-				return t.tokens, errors.New(fmt.Sprintf("Illegal token at: %d %d", t.line, t.col))
+			default:
+				unexpectedTokenMessage := fmt.Sprintf("[%s: line:%d: col:%d]: Unexpected token %s", t.filname, t.line, t.col, string(r))
+				t.addToken(Unexpected, unexpectedTokenMessage)
+				return t.tokens, errors.New(unexpectedTokenMessage)
 			}
 		}
 	}
 
-	if len(t.tokens) > 0 && t.tokens[len(t.tokens)-1].tt == ILLEGAL {
+	if len(t.tokens) > 0 && t.tokens[len(t.tokens)-1].tt == Unexpected {
 		return t.tokens, errors.New(t.tokens[len(t.tokens)-1].data)
 	} else {
 		t.addToken(EOF, "EOF")
 		return t.tokens, nil
+	}
+}
+
+func (t *tokenizer) addCommaIfNeeded() {
+	if len(t.tokens) > 0 {
+		last := t.tokens[len(t.tokens)-1]
+		if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NONWORDIDENTIFIER || last.tt == TYPEIDENTIFIER || last.tt == RBRACE || last.tt == RPAREN || last.tt == RBRACKET {
+			t.addToken(COMMA, ",")
+		}
 	}
 }

@@ -6,7 +6,6 @@ Just like ArrayList has a type, Dict should have a type, it currently uses `[]` 
 
 ## Consider using comma to separate array elements
 
-## Handle Array of Dicts
 
 ```
 [1 2 3]
@@ -17,6 +16,7 @@ vs
 ```js
 [1, 2, 3]
 ```
+## Handle Array of Dictionaries
 
 ## Evaluate Boc + BlockBody
 

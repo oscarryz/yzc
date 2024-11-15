@@ -24,7 +24,7 @@ func main() {
 	for _, f := range files {
 		logger.Printf("%v", f)
 	}
-	internal.Build(files, false)
+	internal.Build(files, true)
 
 }
 
