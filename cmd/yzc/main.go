@@ -14,7 +14,6 @@ var logger = log.Default()
 const sourceSuffix = ".yz"
 
 func main() {
-	fmt.Println()
 	//files := collectSourceFiles("phantom")
 	//files := collectSourceFiles("README.md")
 	//files := collectSourceFiles( ".", "examples/simple")
@@ -49,8 +48,9 @@ func collectSourceFiles(sourceRoots ...string) []internal.SourceFile {
 		walkError := filepath.WalkDir(currentRoot, func(path string, info fs.DirEntry, err error) error {
 
 			if err != nil {
-				return fmt.Errorf("Reading source directory, %v\n"+
-					"Hint: Check all the directories in the source path exists. Source path: %s", err, sourceRoots)
+				return fmt.Errorf("Error while reading source directory: %v\n"+
+					"Source path: %s\n"+
+					"Hint: Check all the directories in the source path exists.", err, sourceRoots)
 			}
 			if info == nil || path == currentRoot && !info.IsDir() {
 				return fmt.Errorf("Not a directory: %s\n"+
