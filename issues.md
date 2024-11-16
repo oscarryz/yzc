@@ -21,10 +21,6 @@ The AST should be something like :
 
 Is not needed
 
-## Uncomment the dictionary test
-
-It was commited by accident
-
 ## Add Dict type to the struct
 
 Just like ArrayList has a type, Dict should have a type, it currently uses `[]` as value.

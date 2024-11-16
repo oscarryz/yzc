@@ -18,6 +18,7 @@ func Parse(fileName string, tokens []Token) (*Boc, error) {
 	parts := strings.Split(fileName, "/")
 	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
 
+	debugCurrentTokenAtPosition(tokens, 0)
 	leaf, e := p.boc()
 	if e != nil {
 		return nil, e
@@ -52,7 +53,11 @@ func newParser(tokens []Token) *parser {
 // consume advances the parser by one Token.
 func (p *parser) consume() {
 	p.currentIndex++
-	p.Token = p.tokens[p.currentIndex]
+	if p.currentIndex >= len(p.tokens) {
+		p.Token = Token{p.pos, EOF, "EOF"}
+	} else {
+		p.Token = p.tokens[p.currentIndex]
+	}
 }
 
 // expect returns true if the next Token is of type t.
@@ -283,4 +288,28 @@ func (p *parser) statement() (statement, error) {
 func (p *parser) syntaxError(message string) error {
 	//p.currentIndex = len(p.tokens) - 1
 	return fmt.Errorf("[%s] %s", p.pos, message)
+}
+
+func debugCurrentTokenAtPosition(tokens []Token, index int) string {
+	ll := 1
+	var builder strings.Builder
+	builder.WriteString("Tokens:\n")
+	builder.WriteString(fmt.Sprintf("%d: ", ll))
+	for i, t := range tokens {
+		if ll != t.pos.line {
+			ll = t.pos.line
+			builder.WriteString("\n")
+			builder.WriteString(fmt.Sprintf("%d: ", ll))
+		}
+		if i == index {
+			builder.WriteString(fmt.Sprintf(" ->  `%v`   ", t.data))
+		} else {
+			builder.WriteString(fmt.Sprintf(" %v ", t.data))
+		}
+	}
+	if index >= len(tokens) {
+		builder.WriteString(" <- [ beyond EOF ] ")
+	}
+	builder.WriteString("\n")
+	return builder.String()
 }

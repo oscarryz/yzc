@@ -408,48 +408,48 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 				statements: []statement{},
 			},
 		},
-		//{
-		//	name:     "Dictionary literal [k1:v1 k2:v2]",
-		//	fileName: "dictionary_literal.yz",
-		//	source:   `[k1:v1, k2:v2]`,
-		//	want: &Boc{
-		//		Name: "dictionary_literal",
-		//		expressions: []expression{
-		//			&DictLit{
-		//				pos(1, 1),
-		//				"[]",
-		//				"",
-		//				"",
-		//				[]expression{
-		//					&BasicLit{
-		//						pos(1, 2),
-		//						IDENTIFIER,
-		//						"k1",
-		//					},
-		//					&BasicLit{
-		//						pos(1, 9),
-		//						IDENTIFIER,
-		//						"k2",
-		//					},
-		//				},
-		//				[]expression{
-		//					&BasicLit{
-		//						pos(1, 5),
-		//						IDENTIFIER,
-		//						"v1",
-		//					},
-		//					&BasicLit{
-		//						pos(1, 12),
-		//						IDENTIFIER,
-		//						"v2",
-		//					},
-		//				},
-		//			},
-		//		},
-		//
-		//		statements: []statement{},
-		//	},
-		//},
+		{
+			name:     "Dictionary literal [k1:v1 k2:v2]",
+			fileName: "dictionary_literal.yz",
+			source:   `[k1:v1, k2:v2]`,
+			want: &Boc{
+				Name: "dictionary_literal",
+				expressions: []expression{
+					&DictLit{
+						pos(1, 1),
+						"[]",
+						"",
+						"",
+						[]expression{
+							&BasicLit{
+								pos(1, 2),
+								IDENTIFIER,
+								"k1",
+							},
+							&BasicLit{
+								pos(1, 9),
+								IDENTIFIER,
+								"k2",
+							},
+						},
+						[]expression{
+							&BasicLit{
+								pos(1, 5),
+								IDENTIFIER,
+								"v1",
+							},
+							&BasicLit{
+								pos(1, 12),
+								IDENTIFIER,
+								"v2",
+							},
+						},
+					},
+				},
+
+				statements: []statement{},
+			},
+		},
 		{
 			name:     "Dictionary literal of type [String][String] ",
 			fileName: "dictionary_literal_type.yz",
