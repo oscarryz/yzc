@@ -676,6 +676,118 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			false,
 			"",
 		},
+		{
+			"Short declaration with literal, array and dictionary",
+			"short_declaration_literal_array_dictionary.yz",
+			`main: {
+        msg: "Hello"
+        array: [1, 2, 3 ]
+        dictionary: [
+                "ready" :false
+        ]
+}`,
+			&Boc{
+				"short_declaration_literal_array_dictionary",
+				[]expression{
+					&ShortDeclaration{
+						pos(1, 1),
+						&BasicLit{
+							pos(1, 1),
+							IDENTIFIER,
+							"main",
+						},
+						&Boc{
+							"",
+							[]expression{
+								&ShortDeclaration{
+									pos(2, 9),
+									&BasicLit{
+										pos(2, 9),
+										IDENTIFIER,
+										"msg",
+									},
+									&BasicLit{
+										pos(2, 14),
+										STRING,
+										"Hello",
+									},
+								},
+								&ShortDeclaration{
+									pos(3, 9),
+									&BasicLit{
+										pos(3, 9),
+										IDENTIFIER,
+										"array",
+									},
+									&ArrayLit{
+										pos(3, 16),
+										&BasicLit{
+											pos(3, 17),
+											INTEGER,
+											"1",
+										},
+										[]expression{
+											&BasicLit{
+												pos(3, 17),
+												INTEGER,
+												"1",
+											},
+											&BasicLit{
+												pos(3, 21),
+												INTEGER,
+												"2",
+											},
+											&BasicLit{
+												pos(3, 25),
+												INTEGER,
+												"3",
+											},
+										},
+									},
+								},
+								&ShortDeclaration{
+									pos(4, 9),
+									&BasicLit{
+										pos(4, 9),
+										IDENTIFIER,
+										"dictionary",
+									},
+
+									&DictLit{
+										pos(4, 22),
+										"[]",
+
+										"",
+										"",
+										[]expression{
+											&BasicLit{
+												pos(5, 9),
+
+												STRING,
+												"ready",
+											},
+										},
+
+										[]expression{
+											&BasicLit{
+												pos(5, 19),
+
+												IDENTIFIER,
+												"false",
+											},
+										},
+									},
+								},
+							},
+							[]statement{},
+						},
+					},
+				},
+				[]statement{},
+			},
+			false,
+			"",
+		},
 	}
 
 	for _, tt := range tests {

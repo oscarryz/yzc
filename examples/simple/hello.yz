@@ -1,5 +1,5 @@
 // A block with two variables.
 language: {
     name: "Yz"
-    type_system: ["static" "strong" "structural"]
+    type_system: ["static", "strong", "structural"]
 }

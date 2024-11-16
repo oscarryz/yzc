@@ -3,12 +3,6 @@ package internal
 import "fmt"
 
 type (
-	Boc struct {
-		Name        string
-		expressions []expression
-		statements  []statement
-	}
-
 	expression interface {
 		value() string
 		String() string
@@ -16,6 +10,12 @@ type (
 	statement interface {
 		value() string
 		String() string
+	}
+
+	Boc struct {
+		Name        string
+		expressions []expression
+		statements  []statement
 	}
 
 	BasicLit struct {
