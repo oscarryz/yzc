@@ -49,8 +49,6 @@ type (
 		exps   []expression
 		rparen position
 	}
-
-	empty struct{}
 )
 
 func (boc *Boc) value() string {
@@ -76,9 +74,6 @@ func (d *DictLit) String() string {
 func (sd *ShortDeclaration) String() string {
 	return prettyPrint(sd, 0)
 }
-func (e *empty) String() string {
-	return prettyPrint(e, 0)
-}
 
 func (bl *BasicLit) value() string {
 	return bl.val
@@ -92,7 +87,4 @@ func (d *DictLit) value() string {
 
 func (sd *ShortDeclaration) value() string {
 	return fmt.Sprintf("%s : %s", sd.key.value(), sd.val.value())
-}
-func (e *empty) value() string {
-	return "<empty>"
 }

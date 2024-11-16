@@ -99,9 +99,9 @@ func (p *parser) boc() (*Boc, error) {
 			return nil, e
 		} else {
 			stmt, e := p.statement()
-			if e == nil {
+			if e == nil && stmt != nil {
 				bb.statements = append(bb.statements, stmt)
-			} else {
+			} else if e != nil {
 				return nil, e
 			}
 		}
@@ -145,13 +145,13 @@ func (p *parser) expression() (expression, error) {
 		p.consume() // consume the {
 		return p.parseBlockLiteral()
 	case RBRACE:
-		return &empty{}, nil
+		return nil, nil
 	case LBRACKET:
 		ap := p.pos
 		p.consume()
 		return p.parseArrayOrDictionaryLiteral(ap)
 	case EOF:
-		return &empty{}, nil
+		return nil, nil
 	default:
 		return nil, nil
 	}
@@ -282,7 +282,7 @@ func createArrayLiteral(ap position, exps []expression) (expression, error) {
 	}
 }
 func (p *parser) statement() (statement, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, nil // fmt.Errorf("not implemented")
 }
 
 func (p *parser) syntaxError(message string) error {

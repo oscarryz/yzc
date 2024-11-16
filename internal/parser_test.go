@@ -24,7 +24,7 @@ func TestParser_Parse(t *testing.T) {
 			want: &Boc{
 				Name: "empty",
 
-				expressions: []expression{&empty{}},
+				expressions: []expression{},
 				statements:  []statement{},
 			},
 		},
@@ -40,7 +40,7 @@ func TestParser_Parse(t *testing.T) {
 				expressions: []expression{
 					&Boc{
 						Name:        "simple",
-						expressions: []expression{&empty{}},
+						expressions: []expression{},
 						statements:  []statement{},
 					},
 				},
@@ -99,7 +99,7 @@ func TestParser_Parse(t *testing.T) {
 				expressions: []expression{
 					&Boc{
 						Name:        "",
-						expressions: []expression{&empty{}},
+						expressions: []expression{},
 						statements:  []statement{},
 					},
 				},
@@ -622,7 +622,6 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										},
 									},
 								},
-								&empty{},
 							},
 							statements: []statement{},
 						},

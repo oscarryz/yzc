@@ -99,7 +99,7 @@ func (t Token) String() string {
 func Tokenize(fileName string, content string) ([]Token, error) {
 	t := &tokenizer{fileName, content, []Token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
-	printTokens(tokens)
+	//printTokens(tokens)
 	return tokens, e
 }
 

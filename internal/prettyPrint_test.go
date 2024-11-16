@@ -84,11 +84,6 @@ func TestPrettyPrint(t *testing.T) {
 }
 `,
 		},
-		{
-			name:     "\tempty struct{}\n",
-			input:    &empty{},
-			expected: "<empty>\n",
-		},
 	}
 
 	for _, tt := range tests {

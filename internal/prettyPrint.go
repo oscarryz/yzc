@@ -66,8 +66,6 @@ func prettyPrint(v interface{}, indent int) string {
 		sb.WriteString(prettyPrint(v.key, indent+2))
 		sb.WriteString(prettyPrint(v.val, indent+2))
 		sb.WriteString(indentStr(indent) + "}\n")
-	case *empty:
-		sb.WriteString(indentStr(indent) + "<empty>\n")
 	// Add more cases for other types as needed
 	default:
 		sb.WriteString(indentStr(indent) + fmt.Sprintf("%+v\n", v))
