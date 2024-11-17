@@ -7,15 +7,15 @@ import (
 
 func TestTokenizer_Tokenize(t *testing.T) {
 	tests := []struct {
-		name     string
-		fileName string
-		content  string
-		want     []Token
+		name    string
+		path    []string
+		content string
+		want    []Token
 	}{
 
 		{
 			"All the tokens",
-			"test.yz",
+			[]string{"test.yz"},
 			`( ) { } [ ] , : ; . = # 
 1 1.0 "Hello, World!" 'Hello, name!' a Point + break continue return /* This is a block comment */ // This is a line comment`,
 			[]Token{
@@ -46,7 +46,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 		},
 		{
 			"Line comment + EOF",
-			"test.yz",
+			[]string{"test.yz"},
 			`// This is a comment`,
 			[]Token{
 				{pos: position{line: 1, col: 22}, tt: EOF, data: "EOF"},
@@ -54,7 +54,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 		},
 		{
 			"Line comment",
-			"test.yz",
+			[]string{"test.yz"},
 			`// This is a comment
 1 + 2`,
 			[]Token{
@@ -66,7 +66,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 		},
 		{
 			"Code and line comment",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 + 2 // This is a comment
 a: 3`,
 			[]Token{
@@ -81,7 +81,7 @@ a: 3`,
 		},
 		{
 			"Block comment",
-			"test.yz",
+			[]string{"test.yz"},
 			`a:1 /* This is a block comment
 that spans multiple lines
 */
@@ -99,7 +99,7 @@ b:2`,
 		},
 		{
 			"Block comment followed by line comment",
-			"test.yz",
+			[]string{"test.yz"},
 			`a:1 /* This is a block comment */ // This is a line comment`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "a"},
@@ -110,7 +110,7 @@ b:2`,
 		},
 		{
 			"String literals",
-			"test.yz",
+			[]string{"test.yz"},
 			`"Hello, World!"`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hello, World!"},
@@ -119,7 +119,7 @@ b:2`,
 		},
 		{
 			"Multiline string literals",
-			"test.yz",
+			[]string{"test.yz"},
 			`"Hi,
 World!"`,
 			[]Token{
@@ -129,7 +129,7 @@ World!"`,
 		},
 		{
 			"Multiline string literals with escape",
-			"test.yz",
+			[]string{"test.yz"},
 			`"Hi, \"
 World!"`,
 			[]Token{
@@ -139,7 +139,7 @@ World!"`,
 		},
 		{
 			"Multiline string literals preserving indentation",
-			"test.yz",
+			[]string{"test.yz"},
 			// There are trailing spaces in the first line of the string
 			`"Hi,   
 	World!   .
@@ -151,7 +151,7 @@ World!"`,
 		},
 		{
 			"String literals with various escapes",
-			"test.yz",
+			[]string{"test.yz"},
 			`"The quick\nbrown fox\tjumps over\\the lazy dog\"She said, 'Hello'\\xUnknown escape"`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "The quick\nbrown fox\tjumps over\\the lazy dog\"She said, 'Hello'\\xUnknown escape"},
@@ -160,7 +160,7 @@ World!"`,
 		},
 		{
 			"String interpolation",
-			"test.yz",
+			[]string{"test.yz"},
 			"'Hello, `name`!'",
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: STRING, data: "Hello, `name`!"},
@@ -169,7 +169,7 @@ World!"`,
 		},
 		{
 			"String literals",
-			"test.yz",
+			[]string{"test.yz"},
 			`["One" 'Two' "'Three'" '"Four"']`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: LBRACKET, data: "["},
@@ -183,7 +183,7 @@ World!"`,
 		},
 		{
 			"Integers",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 9876324`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
@@ -193,7 +193,7 @@ World!"`,
 		},
 		{
 			"Decimal literals",
-			"test.yz",
+			[]string{"test.yz"},
 			`1.0`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: DECIMAL, data: "1.0"},
@@ -202,7 +202,7 @@ World!"`,
 		},
 		{
 			"Negative numbers",
-			"test.yz",
+			[]string{"test.yz"},
 			`minusThree: -1 - -2.0
 plusOne: -1 + -2.0
 `,
@@ -225,7 +225,7 @@ plusOne: -1 + -2.0
 
 		{
 			"Equals sign examples",
-			"test.yz",
+			[]string{"test.yz"},
 			`== => =< =a =`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: EQUALS, data: "=="},
@@ -238,7 +238,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Non ascii characters",
-			"test.yz",
+			[]string{"test.yz"},
 			`message: 👋🌍`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "message"},
@@ -249,7 +249,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Non word identifiers examples",
-			"test.yz",
+			[]string{"test.yz"},
 			`+ - * / % ~ < > ! & | ^ += -= /= ~= != <= >= && || ++ -- >>= <<= >> << |> <- -> `,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: NON_WORD_IDENTIFIER, data: "+"},
@@ -288,7 +288,7 @@ plusOne: -1 + -2.0
 
 		{
 			"Printable UTF-8 characters (additional symbols and emojis)",
-			"test.yz",
+			[]string{"test.yz"},
 			`©®™✓✔✕✖✗✘✙✚✛✜✢✣✤✥✦✧✨⭐✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋❌❍❎❏❐❑❒❖❗❘❙❚❛❜❝❞❡❢❣❤❥❦❧`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: NON_WORD_IDENTIFIER, data: "©®™✓✔✕✖✗✘✙✚✛✜✢✣✤✥✦✧✨⭐✩✪✫✬✭✮✯✰✱✲✳✴✵✶✷✸✹✺✻✼✽✾✿❀❁❂❃❄❅❆❇❈❉❊❋❌❍❎❏❐❑❒❖❗❘❙❚❛❜❝❞❡❢❣❤❥❦❧"},
@@ -296,9 +296,9 @@ plusOne: -1 + -2.0
 			},
 		},
 		{
-			name:     "Common mathematical symbols in Unicode and UTF-8",
-			fileName: "test.yz",
-			content:  `∑ ∏ ∫ ∞ √ ∇ ≈ ≠ ≤ ≥ ± ∂ ∃ ∀ ∈ ∉ ∋ ∅ ∧ ∨ ∩ ∪ ⊂ ⊃ ⊆ ⊇ ⊕ ⊗ ⊥`,
+			name:    "Common mathematical symbols in Unicode and UTF-8",
+			path:    []string{"test.yz"},
+			content: `∑ ∏ ∫ ∞ √ ∇ ≈ ≠ ≤ ≥ ± ∂ ∃ ∀ ∈ ∉ ∋ ∅ ∧ ∨ ∩ ∪ ⊂ ⊃ ⊆ ⊇ ⊕ ⊗ ⊥`,
 			want: []Token{
 				{pos: position{line: 1, col: 1}, tt: NON_WORD_IDENTIFIER, data: "∑"},
 				{pos: position{line: 1, col: 3}, tt: NON_WORD_IDENTIFIER, data: "∏"},
@@ -334,7 +334,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Identifiers with various scripts and their values",
-			"test.yz",
+			[]string{"test.yz"},
 			`¡hola!: "latin"
 привет: "cyrillic"
 变量: "chinese"
@@ -398,7 +398,7 @@ plusOne: -1 + -2.0
 
 		{
 			"Simple",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 + 2`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
@@ -409,7 +409,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Simple with spaces",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 + 2`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: INTEGER, data: "1"},
@@ -420,7 +420,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Simple with newline",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 + 2
 `,
 			[]Token{
@@ -433,7 +433,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Simple with newline and spaces",
-			"test.yz",
+			[]string{"test.yz"},
 			`1 + 2
 `,
 			[]Token{
@@ -446,7 +446,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Hash and parenthesis",
-			"test.yz",
+			[]string{"test.yz"},
 			`fn #(Int)`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: IDENTIFIER, data: "fn"},
@@ -460,7 +460,7 @@ plusOne: -1 + -2.0
 
 		{
 			"Empty file",
-			"test.yz",
+			[]string{"test.yz"},
 			``,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: EOF, data: "EOF"},
@@ -468,7 +468,7 @@ plusOne: -1 + -2.0
 		},
 		{
 			"Empty file with newline",
-			"test.yz",
+			[]string{"test.yz"},
 			`  
   `,
 			[]Token{
@@ -479,7 +479,7 @@ plusOne: -1 + -2.0
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, e := Tokenize(tt.fileName, tt.content)
+			got, e := Tokenize(tt.path, tt.content)
 			if e != nil {
 				t.Errorf("Tokenize() error = %v", e)
 				return
@@ -502,33 +502,33 @@ plusOne: -1 + -2.0
 
 func TestTokenizer_SyntaxErr(t *testing.T) {
 	tests := []struct {
-		name     string
-		fileName string
-		content  string
-		want     error
+		name    string
+		path    []string
+		content string
+		want    error
 	}{
 		{
 			"Unclosed string",
-			"test.yz",
+			[]string{"test.yz"},
 			`"`,
 			fmt.Errorf("[test.yz: line:1: col:2]: Syntax error: unterminated string literal"),
 		},
 		{
 			"Unclosed multiline comment",
-			"test.yz",
+			[]string{"test.yz"},
 			`/*`,
 			fmt.Errorf("[test.yz: line:1: col:3]: Syntax error: unterminated comment"),
 		},
 		{
 			"Backtick strings",
-			"test.yz",
+			[]string{"test.yz"},
 			"`hola`",
 			fmt.Errorf("[test.yz: line:1: col:1]: Unexpected Token `"),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, got := Tokenize(tt.fileName, tt.content)
+			_, got := Tokenize(tt.path, tt.content)
 
 			if got == nil {
 				t.Errorf("Tokenize() error = %v, want %v", got, tt.want)

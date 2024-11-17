@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 type SourceFile struct {
@@ -43,8 +44,10 @@ func Build(input []SourceFile, keepGeneratedSource bool) {
 		logger.Printf("Processing: %s\n", sourceFile.AbsolutePath)
 		content, e := os.ReadFile(sourceFile.AbsolutePath)
 
-		tokens, e := Tokenize(sourceFile.Path, string(content))
-		boc, e := Parse(sourceFile.Path, tokens)
+		parts := strings.Split(sourceFile.Path, "/")
+		leaf := strings.Split(parts[len(parts)-1], ".")[0]
+		tokens, e := Tokenize(parts, string(content))
+		boc, e := Parse(parts, tokens)
 		if e != nil {
 			logger.Fatal(e)
 		}
@@ -52,7 +55,7 @@ func Build(input []SourceFile, keepGeneratedSource bool) {
 		logger.Printf("IR: %v\n", boc)
 
 		// generate code
-		fileName, e := GenerateCode(tmpDir, boc)
+		fileName, e := GenerateCode(tmpDir, boc, leaf+".go")
 
 		if e != nil {
 			log.Fatalf("%q", e)
@@ -60,7 +63,7 @@ func Build(input []SourceFile, keepGeneratedSource bool) {
 		}
 		logger.Printf("go build %s\n", fileName)
 		// compile the code
-		gobuild(boc.Name, fileName)
+		gobuild(leaf, fileName)
 
 	}
 }

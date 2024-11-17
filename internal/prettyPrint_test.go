@@ -11,9 +11,7 @@ func TestPrettyPrint(t *testing.T) {
 		expected string
 	}{
 		{
-			name: "Boc",
 			input: &Boc{
-				Name: "test_boc",
 				expressions: []expression{
 					&BasicLit{
 						pos: pos(1, 1),
@@ -24,7 +22,6 @@ func TestPrettyPrint(t *testing.T) {
 				statements: []statement{},
 			},
 			expected: `Boc {
-    Name: test_boc
     BasicLit {
         pos: line: 1 col: 1
         tt: str

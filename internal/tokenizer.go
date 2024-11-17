@@ -96,28 +96,10 @@ func (t Token) String() string {
 }
 
 // Tokenize converts the content into an array of tokens or returns an error if the content is not valid
-func Tokenize(fileName string, content string) ([]Token, error) {
-	t := &tokenizer{fileName, content, []Token{}, 0, 1, 0, true}
+func Tokenize(path []string, content string) ([]Token, error) {
+	t := &tokenizer{path[len(path)-1], content, []Token{}, 0, 1, 0, true}
 	tokens, e := t.tokenize()
-	//printTokens(tokens)
 	return tokens, e
-}
-
-func printTokens(tokens []Token) {
-	ll := 1
-	var builder strings.Builder
-	builder.WriteString("Tokens:\n")
-	builder.WriteString(fmt.Sprintf("%d: ", ll))
-	for _, t := range tokens {
-		if ll != t.pos.line {
-			ll = t.pos.line
-			builder.WriteString("\n")
-			builder.WriteString(fmt.Sprintf("%d: ", ll))
-		}
-		builder.WriteString(fmt.Sprintf("%v", t))
-	}
-	builder.WriteString("\n")
-	logger.Println(builder.String())
 }
 
 func (t *tokenizer) addToken(tt tokenType, data string) {

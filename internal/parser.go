@@ -12,26 +12,20 @@ type parser struct {
 	prog *Boc
 }
 
-func Parse(fileName string, tokens []Token) (*Boc, error) {
+func Parse(parents []string, tokens []Token) (*Boc, error) {
 	p := newParser(tokens)
-	// splits the file Name into directories and file Name without extension
-	parts := strings.Split(fileName, "/")
-	fileNameWithoutExtension := strings.Split(parts[len(parts)-1], ".")[0]
-
 	debugCurrentTokenAtPosition(tokens, 0)
 	leaf, e := p.boc()
 	if e != nil {
 		return nil, e
 	}
-	leaf.Name = fileNameWithoutExtension
 	// Creates the parent bocs
 	// for a/b/c.yz will creates
 	// Boc{ Name: "a", bocType: nil, boc:
 	//		Boc: { Name: "b", bocType: nil, boc:
 	//			Boc: { Name: "c", bocType: nil, boc: nil } } }
-	for i := len(parts) - 2; i >= 0; i-- {
+	for i := len(parents) - 2; i >= 0; i-- {
 		leaf = &Boc{
-			Name:        parts[i],
 			expressions: []expression{leaf},
 			statements:  []statement{},
 		}
@@ -82,7 +76,6 @@ func (p *parser) expect(t tokenType) error {
 // block_body ::= (expression | statement) ((","|"\n") (expression | statement))* | ""
 func (p *parser) boc() (*Boc, error) {
 	bb := &Boc{
-		"",
 		[]expression{},
 		[]statement{},
 	}
@@ -273,8 +266,8 @@ func createArrayLiteral(ap position, exps []expression) (expression, error) {
 		at := &ArrayLit{al.pos, al.arrayType, []expression{}}
 		return &ArrayLit{ap, at, exps}, nil
 	case *Boc:
-		bl, _ := exps[0].(*Boc)
-		bt := &Boc{bl.Name, []expression{}, []statement{}}
+		// I think I need the type here
+		bt := &Boc{[]expression{}, []statement{}}
 		return &ArrayLit{ap, bt, exps}, nil
 	default:
 		return &ArrayLit{ap, exps[0], exps}, nil

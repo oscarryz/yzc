@@ -13,7 +13,6 @@ type (
 	}
 
 	Boc struct {
-		Name        string
 		expressions []expression
 		statements  []statement
 	}
@@ -52,7 +51,7 @@ type (
 )
 
 func (boc *Boc) value() string {
-	return boc.Name
+	return "{}"
 }
 
 func (boc *Boc) String() string {

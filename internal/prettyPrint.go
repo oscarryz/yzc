@@ -11,7 +11,6 @@ func prettyPrint(v interface{}, indent int) string {
 	switch v := v.(type) {
 	case *Boc:
 		sb.WriteString(indentStr(indent) + "Boc {\n")
-		sb.WriteString(indentStr(indent+2) + "Name: " + v.Name + "\n")
 		if v.expressions == nil {
 			sb.WriteString(prettyPrint("exprs: nil", indent+2))
 		}

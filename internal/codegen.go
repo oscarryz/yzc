@@ -1,16 +1,14 @@
 package internal
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
-func GenerateCode(tempDir string, boc *Boc) (string, error) {
+func GenerateCode(tempDir string, boc *Boc, bocGoName string) (string, error) {
 	content := Bytes(boc)
-	bocGoName := fmt.Sprintf("%s.go", boc.Name)
 	fileName := filepath.Join(tempDir, bocGoName)
 	if err := os.WriteFile(fileName, content, 0750); err != nil {
 		logger.Fatalf("write error: %q", err)
