@@ -19,20 +19,25 @@ func Parse(parents []string, tokens []Token) (*Boc, error) {
 	if e != nil {
 		return nil, e
 	}
-	// Creates the parent bocs
-	// for a/b/c.yz will creates
-	// Boc{ Name: "a", bocType: nil, boc:
-	//		Boc: { Name: "b", bocType: nil, boc:
-	//			Boc: { Name: "c", bocType: nil, boc: nil } } }
-	for i := len(parents) - 2; i >= 0; i-- {
+	// Creates the intermediate parents.
+
+	for i := len(parents) - 1; i >= 0; i-- {
 		leaf = &Boc{
-			expressions: []expression{leaf},
-			statements:  []statement{},
+			expressions: []expression{
+				&ShortDeclaration{
+					pos: pos(0, 0),
+					key: &BasicLit{
+						pos: pos(0, 0),
+						tt:  IDENTIFIER,
+						val: parents[i],
+					},
+					val: leaf,
+				},
+			},
+			statements: []statement{},
 		}
 	}
-
 	return leaf, nil
-
 }
 
 func newParser(tokens []Token) *parser {
