@@ -1,26 +1,3 @@
-## The initial split of filename into directories should create an AST of ShortDecl
-
-For the input `a/b/c.yz`
-
-The AST should be something like :
-
-```
- ShortDcl { 
-        key: a , 
-        val: Boc{ 
-                key: b,
-                val: ShortDecl { 
-                    key: c ,
-                    val: {}     
-        }
-    }
-}
-```
-
-## Remove the Boc.name property
-
-Is not needed
-
 ## Add Dict type to the struct
 
 Just like ArrayList has a type, Dict should have a type, it currently uses `[]` as value.
