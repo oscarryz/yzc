@@ -247,14 +247,18 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 
 		if ct == COMMA {
 			ct = p.tt
-			if ct != RBRACKET {
-				continue
+			if ct == RBRACKET {
+				p.consume() // consume the RBRACKET
+				if insideDict {
+					return dl, nil
+				}
+				return createArrayLiteral(ap, exps)
 			}
+			continue
 		}
 
 		if ct == RBRACKET {
 			if insideDict {
-				p.consume()
 				return dl, nil
 			}
 			return createArrayLiteral(ap, exps)

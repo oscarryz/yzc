@@ -112,16 +112,18 @@ string_literal
     | "`" PRINTABLE* "`"
 
 // [] String
-// ["a" "b" "c"]
+// ["a", "b", "c"]
+// ["a",]
 array_literal
   ::= "[" "]" type // empty array of given type for shorthand
-  | "[" expression* "]" //expressions of the same type
+  |  "[" (expression ("," )?)+ "]" // Expressions have to be the same type
 
 // [String] Int
-// ["k1": "v1" "k2":"v2]
+// ["k1": "v1",  "k2":"v2]
+// [ "a": "b",]
 dictionary_literal
   ::= "[" type "]" type // empty dictionary of given types
-  | "[" (expression ":" expression)* "]" // expressions don't have to be the same type
+  | "[" (expression ":" expression ("," )?)+ "]" // expressions to be the same type
 
 // a, b, c = 1, 2, 3
 assignment ::= variable ("," variable)* "=" expression ("," expression)*

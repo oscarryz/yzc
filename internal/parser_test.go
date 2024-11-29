@@ -75,28 +75,6 @@ func TestParser_Parse(t *testing.T) {
 				},
 				statements: []statement{},
 			},
-			//want: &ShortDeclaration{
-			//				pos(1, 1),
-			//				&BasicLit{
-			//					pos(1, 1),
-			//					IDENTIFIER,
-			//					"parent",
-			//				},
-			//				&Boc{
-			//					expressions: []expression{},
-			//					statements:  []statement{},
-			//				},
-			//},
-			//want: &Boc{
-			//
-			//	expressions: []expression{
-			//		&Boc{
-			//			expressions: []expression{},
-			//			statements:  []statement{},
-			//		},
-			//	},
-			//	statements: []statement{},
-			//},
 		},
 		{
 			name: "Literal expressions",
@@ -419,6 +397,81 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											pos(1, 8),
 											INTEGER,
 											"3",
+										},
+									},
+								},
+							},
+							statements: []statement{},
+						},
+					},
+				},
+				statements: []statement{},
+			},
+		},
+		{
+			name:    "Array of arrays [[1 2]] is an [][Int]",
+			parents: []string{"array_of_arrays_2.yz"},
+			source:  `[[1, 2],[1, 2]]`,
+			want: &Boc{
+				expressions: []expression{
+					&ShortDeclaration{
+						pos: pos(0, 0),
+						key: &BasicLit{
+							pos: pos(0, 0),
+							tt:  IDENTIFIER,
+							val: "array_of_arrays_2.yz",
+						},
+						val: &Boc{
+							expressions: []expression{
+								&ArrayLit{
+									pos(1, 1),
+									&ArrayLit{
+										pos(1, 2),
+										&BasicLit{
+											pos(1, 3),
+											INTEGER, "1",
+										},
+										[]expression{}},
+									[]expression{
+										&ArrayLit{
+											pos(1, 2),
+											&BasicLit{
+												pos(1, 3),
+												INTEGER,
+												"1",
+											},
+											[]expression{
+												&BasicLit{
+													pos(1, 3),
+													INTEGER,
+													"1",
+												},
+												&BasicLit{
+													pos(1, 6),
+													INTEGER,
+													"2",
+												},
+											},
+										},
+										&ArrayLit{
+											pos(1, 9),
+											&BasicLit{
+												pos(1, 10),
+												INTEGER,
+												"1",
+											},
+											[]expression{
+												&BasicLit{
+													pos(1, 10),
+													INTEGER,
+													"1",
+												},
+												&BasicLit{
+													pos(1, 13),
+													INTEGER,
+													"2",
+												},
+											},
 										},
 									},
 								},
@@ -995,6 +1048,100 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											},
 										},
 										statements: []statement{},
+									},
+								},
+							},
+							statements: []statement{},
+						},
+					},
+				},
+				statements: []statement{},
+			},
+		},
+		{
+			name:    "Array of dictionaries",
+			parents: []string{"array_of_dictionaries.yz"},
+			source: `[
+	[
+		"ready" : false
+	],
+	[
+		"done" : true
+	]
+]`,
+			want: &Boc{
+				expressions: []expression{
+					&ShortDeclaration{
+						pos: pos(0, 0),
+						key: &BasicLit{
+							pos: pos(0, 0),
+							tt:  IDENTIFIER,
+							val: "array_of_dictionaries.yz",
+						},
+						val: &Boc{
+							expressions: []expression{
+								&ArrayLit{
+									pos(1, 1),
+									&DictLit{
+										pos(2, 2),
+										"[]",
+										"",
+										"",
+										[]expression{
+											&BasicLit{
+												pos(3, 3),
+												STRING,
+												"ready",
+											},
+										},
+										[]expression{
+											&BasicLit{
+												pos(3, 13),
+												IDENTIFIER,
+												"false",
+											},
+										},
+									},
+									[]expression{
+										&DictLit{
+											pos(2, 2),
+											"[]",
+											"",
+											"",
+											[]expression{
+												&BasicLit{
+													pos(3, 3),
+													STRING,
+													"ready",
+												},
+											},
+											[]expression{
+												&BasicLit{
+													pos(3, 13),
+													IDENTIFIER,
+													"false",
+												},
+											},
+										},
+										&DictLit{
+											pos(5, 2),
+											"[]",
+											"",
+											"",
+											[]expression{
+												&BasicLit{
+													pos(6, 3),
+													STRING,
+													"done",
+												},
+											}, []expression{
+												&BasicLit{
+													pos(6, 12),
+													IDENTIFIER,
+													"true",
+												},
+											},
+										},
 									},
 								},
 							},
