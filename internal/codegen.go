@@ -8,7 +8,12 @@ import (
 )
 
 func GenerateCode(tempDir string, boc *Boc, bocGoName string) (string, error) {
-	content := Bytes(boc)
+	content, e := Bytes(boc, bocGoName)
+	if e != nil {
+		logger.Fatalf("generate code error: %q", e)
+		return "", e
+
+	}
 	fileName := filepath.Join(tempDir, bocGoName)
 	if err := os.WriteFile(fileName, content, 0750); err != nil {
 		logger.Fatalf("write error: %q", err)
@@ -17,20 +22,20 @@ func GenerateCode(tempDir string, boc *Boc, bocGoName string) (string, error) {
 	return fileName, nil
 }
 
-func Bytes(boc *Boc) []byte {
+func Bytes(boc *Boc, name string) ([]byte, error) {
 	goSourceTemplate, err := template.New("main").Parse(
 		`package main
 
 func main() {
-	print("Hello {{.Name}} code generator")
+	print("Hello {{.}} code generator")
 }`)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var sb strings.Builder
-	err = goSourceTemplate.Execute(&sb, boc)
+	err = goSourceTemplate.Execute(&sb, name)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return []byte(sb.String())
+	return []byte(sb.String()), nil
 }

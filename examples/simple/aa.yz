@@ -2,6 +2,6 @@ main: {
 	msg: "Hello"
 	array: [1, 2 ,3 ]
 	dictionary: [
-		"ready" :false 
+		"ready" : false
 	]
 }
