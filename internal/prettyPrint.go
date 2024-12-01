@@ -10,7 +10,7 @@ func prettyPrint(v interface{}, indent int) string {
 
 	switch v := v.(type) {
 	case *Boc:
-		sb.WriteString(indentStr(indent) + "Boc {\n")
+		sb.WriteString(indentStr(indent) + "Boc(\n")
 		if v.expressions == nil {
 			sb.WriteString(prettyPrint("exprs: nil", indent+2))
 		}
@@ -23,15 +23,15 @@ func prettyPrint(v interface{}, indent int) string {
 		for _, stmt := range v.statements {
 			sb.WriteString(prettyPrint(stmt, indent+2))
 		}
-		sb.WriteString(indentStr(indent) + "}\n")
+		sb.WriteString(indentStr(indent) + ")\n")
 	case *BasicLit:
-		sb.WriteString(indentStr(indent) + "BasicLit {\n")
+		sb.WriteString(indentStr(indent) + "BasicLit(\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "tt: " + v.tt.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
-		sb.WriteString(indentStr(indent) + "}\n")
+		sb.WriteString(indentStr(indent) + ")\n")
 	case *ArrayLit:
-		sb.WriteString(indentStr(indent) + "ArrayLit {\n")
+		sb.WriteString(indentStr(indent) + "ArrayLit(\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "arrayType:\n" + prettyPrint(v.arrayType, indent+4))
 		sb.WriteString(indentStr(indent+2) + "exps: [\n")
@@ -39,9 +39,9 @@ func prettyPrint(v interface{}, indent int) string {
 			sb.WriteString(prettyPrint(exp, indent+4))
 		}
 		sb.WriteString(indentStr(indent+2) + "]\n")
-		sb.WriteString(indentStr(indent) + "}\n")
+		sb.WriteString(indentStr(indent) + ")\n")
 	case *DictLit:
-		sb.WriteString(indentStr(indent) + "DictLit {\n")
+		sb.WriteString(indentStr(indent) + "DictLit(\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
 		sb.WriteString(indentStr(indent+2) + "keyType: " + v.keyType + "\n")
@@ -58,14 +58,41 @@ func prettyPrint(v interface{}, indent int) string {
 
 		}
 		sb.WriteString(indentStr(indent+2) + "]\n")
+		sb.WriteString(indentStr(indent) + ")\n")
 	case *ShortDeclaration:
-		sb.WriteString(indentStr(indent) + "ShortDeclaration {\n")
+		sb.WriteString(indentStr(indent) + "ShortDeclaration(\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
 		//sb.WriteString(indentStr(indent+2) + "identifier: " + v.key.value() + "\n")
 		sb.WriteString(prettyPrint(v.key, indent+2))
 		sb.WriteString(prettyPrint(v.val, indent+2))
+		sb.WriteString(indentStr(indent) + ")\n")
+	case *IntType:
+		sb.WriteString(indentStr(indent) + "IntType\n")
+	case *DecimalType:
+		sb.WriteString(indentStr(indent) + "DecimalType\n")
+	case *StringType:
+		sb.WriteString(indentStr(indent) + "StringType\n")
+	case *ArrayType:
+		sb.WriteString(indentStr(indent) + "ArrayType(\n")
+		sb.WriteString(indentStr(indent+2) + "elemType:" + prettyPrint(v.elemType, 1))
+		sb.WriteString(indentStr(indent) + ")\n")
+	case *DictType:
+		sb.WriteString(indentStr(indent) + "DictType(\n")
+		sb.WriteString(indentStr(indent+2) + "key:\n" + prettyPrint(v.keyType, indent+4))
+		sb.WriteString(indentStr(indent+2) + "val:\n" + prettyPrint(v.valType, indent+4))
+		sb.WriteString(indentStr(indent) + ")\n")
+	case *BocType:
+		sb.WriteString(indentStr(indent) + "BocType\n")
+	case *Field:
+		sb.WriteString(indentStr(indent) + "Field {\n")
+		sb.WriteString(indentStr(indent+2) + "name: " + v.name + "\n")
+		sb.WriteString(indentStr(indent+2) + "dataType:\n" + prettyPrint(v.dataType, indent+4))
 		sb.WriteString(indentStr(indent) + "}\n")
+	case *TBD:
+		sb.WriteString(indentStr(indent) + "TBD\n")
 	// Add more cases for other types as needed
+	case nil:
+		sb.WriteString(indentStr(indent) + "nil\n")
 	default:
 		sb.WriteString(indentStr(indent) + fmt.Sprintf("%+v\n", v))
 	}

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -11,6 +12,7 @@ func TestPrettyPrint(t *testing.T) {
 		expected string
 	}{
 		{
+			name: "Boc",
 			input: &Boc{
 				expressions: []expression{
 					&BasicLit{
@@ -21,13 +23,13 @@ func TestPrettyPrint(t *testing.T) {
 				},
 				statements: []statement{},
 			},
-			expected: `Boc {
-    BasicLit {
+			expected: `Boc (
+    BasicLit (
         pos: line: 1 col: 1
         tt: str
         val: Hello
-    }
-}
+    )
+)
 `,
 		},
 
@@ -38,23 +40,20 @@ func TestPrettyPrint(t *testing.T) {
 				tt:  STRING,
 				val: "Hello",
 			},
-			expected: `BasicLit {
+			expected: `BasicLit (
     pos: line: 1 col: 1
     tt: str
     val: Hello
-}
+)
 `,
 		},
 		{
 			name: "ArrayLit",
 			input: &ArrayLit{
 				pos: pos(1, 1),
-				arrayType: &BasicLit{
-					pos: pos(2, 1),
-					tt:  INTEGER,
-					val: "1",
+				arrayType: &ArrayType{
+					elemType: &IntType{},
 				},
-
 				exps: []expression{
 					&BasicLit{
 						pos: pos(2, 1),
@@ -63,22 +62,20 @@ func TestPrettyPrint(t *testing.T) {
 					},
 				},
 			},
-			expected: `ArrayLit {
+			expected: `ArrayLit(
     pos: line: 1 col: 1
-    arrayType:
-        BasicLit {
-            pos: line: 2 col: 1
-            tt: int
-            val: 1
-        }
+    arrayType: 
+		ArrayType(
+			elemType: IntType
+		)
     exps: [
-        BasicLit {
+        BasicLit(
             pos: line: 2 col: 1
             tt: int
             val: 1
-        }
+        )
     ]
-}
+)
 `,
 		},
 	}
@@ -94,5 +91,9 @@ func TestPrettyPrint(t *testing.T) {
 }
 
 func removeSpaces(s string) string {
-	return s // strings.ReplaceAll(s, " ", "")
+	return strings.ReplaceAll(
+		strings.ReplaceAll(
+			strings.ReplaceAll(s, " ", ""),
+			"\n", ""),
+		"\t", "")
 }

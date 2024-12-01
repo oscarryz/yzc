@@ -1,9 +1,11 @@
 ## Types. Simplify Array type or types for that matter
 
-It uses an expression which currently is the same expression (or almost) as the first element
-probably there could be some other way
-
-Probably well get there when we start doing declaration statements.
+- ~~It uses an expression which currently is the same expression (or almost) as the first element
+probably there could be some other way~~
+- ~~Probably well get there when we start doing declaration statements.~~
+- ~~Arrays~~
+- Dictionaries
+- Bocs
 
 ## Change Boc type to expression
 But first simplify types. Do I need a type struct? (kind)

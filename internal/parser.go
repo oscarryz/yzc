@@ -197,10 +197,32 @@ func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 		return nil, err
 	}
 	ct := p.tt
-	ctp := p.pos
+	//ctp := p.pos
 	ctd := p.data
 	p.consume()
-	return &ArrayLit{ap, &BasicLit{ctp, ct, ctd}, []expression{}}, nil
+	at := new(ArrayType)
+	// TODO: need to handle arrays and dictionaries e.g. [][Int], [][String:Int]
+	switch ct {
+	case INTEGER:
+		at.elemType = new(IntType)
+	case DECIMAL:
+		at.elemType = new(DecimalType)
+	case STRING:
+		at.elemType = new(StringType)
+	case TYPE_IDENTIFIER:
+		switch ctd {
+		case "Int":
+			at.elemType = new(IntType)
+		case "Decimal":
+			at.elemType = new(DecimalType)
+		case "String":
+			at.elemType = new(StringType)
+		}
+	default:
+		at.elemType = new(TBD)
+	}
+
+	return &ArrayLit{ap, []expression{}, at}, nil
 }
 
 // [ String ] Int
@@ -272,14 +294,19 @@ func createArrayLiteral(ap position, exps []expression) (expression, error) {
 	switch exps[0].(type) {
 	case *ArrayLit:
 		al, _ := exps[0].(*ArrayLit)
-		at := &ArrayLit{al.pos, al.arrayType, []expression{}}
-		return &ArrayLit{ap, at, exps}, nil
+		et := al.arrayType.(*ArrayType).elemType
+		at := new(ArrayType)
+		at.elemType = et
+		return &ArrayLit{ap, exps, at}, nil
 	case *Boc:
 		// I think I need the type here
-		bt := &Boc{[]expression{}, []statement{}}
-		return &ArrayLit{ap, bt, exps}, nil
+		//bt := &Boc{[]expression{}, []statement{}}
+		bt := new(BocType)
+		return &ArrayLit{ap, exps, bt}, nil
 	default:
-		return &ArrayLit{ap, exps[0], exps}, nil
+		at := new(ArrayType)
+		at.elemType = exps[0].dataType()
+		return &ArrayLit{ap, exps, at}, nil
 
 	}
 }
