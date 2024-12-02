@@ -16,35 +16,43 @@ func TestPrettyPrint(t *testing.T) {
 			input: &Boc{
 				expressions: []expression{
 					&BasicLit{
-						pos: pos(1, 1),
-						tt:  STRING,
-						val: "Hello",
+						pos:       pos(1, 1),
+						tt:        STRING,
+						val:       "Hello",
+						basicType: &StringType{},
 					},
 				},
 				statements: []statement{},
 			},
-			expected: `Boc (
-    BasicLit (
-        pos: line: 1 col: 1
-        tt: str
-        val: Hello
-    )
-)
+			expected: `Boc(
+            BasicLit(
+                pos: line: 1 col: 1
+                tt: str
+                val: Hello
+                basicType: {
+                    StringType
+                }
+            )
+        )
 `,
 		},
 
 		{
 			name: "BasicLit",
 			input: &BasicLit{
-				pos: pos(1, 1),
-				tt:  STRING,
-				val: "Hello",
+				pos:       pos(1, 1),
+				tt:        STRING,
+				val:       "Hello",
+				basicType: &StringType{},
 			},
-			expected: `BasicLit (
-    pos: line: 1 col: 1
-    tt: str
-    val: Hello
-)
+			expected: `BasicLit(
+            pos: line: 1 col: 1
+            tt: str
+            val: Hello
+            basicType: {
+                StringType
+            }
+        )
 `,
 		},
 		{
@@ -56,26 +64,30 @@ func TestPrettyPrint(t *testing.T) {
 				},
 				exps: []expression{
 					&BasicLit{
-						pos: pos(2, 1),
-						tt:  INTEGER,
-						val: "1",
+						pos:       pos(2, 1),
+						tt:        INTEGER,
+						val:       "1",
+						basicType: &IntType{},
 					},
 				},
 			},
 			expected: `ArrayLit(
-    pos: line: 1 col: 1
-    arrayType: 
-		ArrayType(
-			elemType: IntType
-		)
-    exps: [
-        BasicLit(
-            pos: line: 2 col: 1
-            tt: int
-            val: 1
+            pos: line: 1 col: 1
+            arrayType:
+                ArrayType(
+                    elemType:  IntType
+                )
+            exps: [
+                BasicLit(
+                    pos: line: 2 col: 1
+                    tt: int
+                    val: 1
+                    basicType: {
+                        IntType
+                    }
+                )
+            ]
         )
-    ]
-)
 `,
 		},
 	}

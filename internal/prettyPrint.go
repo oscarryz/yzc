@@ -29,6 +29,8 @@ func prettyPrint(v interface{}, indent int) string {
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "tt: " + v.tt.String() + "\n")
 		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
+		sb.WriteString(indentStr(indent+2) + "basicType: {\n" + prettyPrint(v.basicType, indent+4))
+		sb.WriteString(indentStr(indent+2) + "}\n")
 		sb.WriteString(indentStr(indent) + ")\n")
 	case *ArrayLit:
 		sb.WriteString(indentStr(indent) + "ArrayLit(\n")
@@ -43,9 +45,7 @@ func prettyPrint(v interface{}, indent int) string {
 	case *DictLit:
 		sb.WriteString(indentStr(indent) + "DictLit(\n")
 		sb.WriteString(indentStr(indent+2) + "pos: " + v.pos.String() + "\n")
-		sb.WriteString(indentStr(indent+2) + "val: " + v.val + "\n")
-		sb.WriteString(indentStr(indent+2) + "keyType: " + v.keyType + "\n")
-		sb.WriteString(indentStr(indent+2) + "valType: " + v.valType + "\n")
+		sb.WriteString(indentStr(indent+2) + "dictType:\n" + prettyPrint(v.dictType, indent+4))
 		sb.WriteString(indentStr(indent+2) + "keys: [\n")
 		for _, exp := range v.keys {
 			sb.WriteString(prettyPrint(exp, indent+4))

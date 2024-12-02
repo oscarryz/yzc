@@ -4,8 +4,10 @@
 probably there could be some other way~~
 - ~~Probably well get there when we start doing declaration statements.~~
 - ~~Arrays~~
-- Dictionaries
+- ~~Dictionaries~~
 - Bocs
+- Fix file inferred boc and short declarations in general
+
 
 ## Change Boc type to expression
 But first simplify types. Do I need a type struct? (kind)

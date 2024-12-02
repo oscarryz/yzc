@@ -98,6 +98,7 @@ func TestParser_Parse(t *testing.T) {
 									pos(1, 1),
 									INTEGER,
 									"1",
+									&IntType{},
 								},
 							},
 							statements: []statement{},
@@ -129,6 +130,7 @@ func TestParser_Parse(t *testing.T) {
 									pos(1, 1),
 									STRING,
 									"Hello world",
+									&StringType{},
 								},
 							},
 							statements: []statement{},
@@ -193,11 +195,13 @@ func TestParser_Parse(t *testing.T) {
 									pos(1, 1),
 									INTEGER,
 									"1",
+									&IntType{},
 								},
 								&BasicLit{
 									pos(1, 3),
 									STRING,
 									"Hello world",
+									&StringType{},
 								},
 							},
 							statements: []statement{},
@@ -241,11 +245,13 @@ func TestParser_Parse(t *testing.T) {
 									pos(1, 1),
 									INTEGER,
 									"1",
+									&IntType{},
 								},
 								&BasicLit{
 									pos(2, 1),
 									STRING,
 									"Hello world",
+									&StringType{},
 								},
 							},
 							statements: []statement{},
@@ -344,6 +350,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 									pos(2, 1),
 									STRING,
 									"Hello",
+									&StringType{},
 								},
 							},
 							statements: []statement{},
@@ -375,16 +382,19 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											pos(1, 2),
 											INTEGER,
 											"1",
+											&IntType{},
 										},
 										&BasicLit{
 											pos(1, 5),
 											INTEGER,
 											"2",
+											&IntType{},
 										},
 										&BasicLit{
 											pos(1, 8),
 											INTEGER,
 											"3",
+											&IntType{},
 										},
 									},
 									&ArrayType{elemType: &IntType{}},
@@ -422,11 +432,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(1, 3),
 													INTEGER,
 													"1",
+													&IntType{},
 												},
 												&BasicLit{
 													pos(1, 6),
 													INTEGER,
 													"2",
+													&IntType{},
 												},
 											},
 											&ArrayType{elemType: &IntType{}}},
@@ -437,11 +449,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(1, 10),
 													INTEGER,
 													"1",
+													&IntType{},
 												},
 												&BasicLit{
 													pos(1, 13),
 													INTEGER,
 													"2",
+													&IntType{},
 												},
 											},
 											&ArrayType{elemType: &IntType{}}},
@@ -481,11 +495,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(1, 3),
 													INTEGER,
 													"1",
+													&IntType{},
 												},
 												&BasicLit{
 													pos(1, 6),
 													INTEGER,
 													"2",
+													&IntType{},
 												},
 											},
 											&ArrayType{elemType: &IntType{}}},
@@ -528,6 +544,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(1, 3),
 													INTEGER,
 													"1",
+													&IntType{},
 												},
 											},
 											statements: []statement{},
@@ -538,12 +555,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(1, 8),
 													INTEGER,
 													"2",
+													&IntType{},
 												},
 											},
 											statements: []statement{},
 										},
 									},
-									&BocType{},
+									&ArrayType{elemType: &BocType{}},
 								},
 							},
 							statements: []statement{},
@@ -570,9 +588,10 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
-									"[]",
-									"String",
-									"Int",
+									&DictType{
+										keyType: &StringType{},
+										valType: &IntType{},
+									},
 									[]expression{},
 									[]expression{},
 								},
@@ -601,19 +620,22 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
-									"[]",
-									"",
-									"",
+									&DictType{
+										keyType: &TBD{},
+										valType: &TBD{},
+									},
 									[]expression{
 										&BasicLit{
 											pos(1, 2),
 											IDENTIFIER,
 											"k1",
+											new(TBD),
 										},
 										&BasicLit{
 											pos(1, 9),
 											IDENTIFIER,
 											"k2",
+											new(TBD),
 										},
 									},
 									[]expression{
@@ -621,11 +643,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											pos(1, 5),
 											IDENTIFIER,
 											"v1",
+											new(TBD),
 										},
 										&BasicLit{
 											pos(1, 12),
 											IDENTIFIER,
 											"v2",
+											new(TBD),
 										},
 									},
 								},
@@ -657,19 +681,22 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
-									"[]",
-									"",
-									"",
+									&DictType{
+										keyType: &StringType{},
+										valType: &ArrayType{elemType: &StringType{}},
+									},
 									[]expression{
 										&BasicLit{
 											pos(2, 5),
 											STRING,
 											"name",
+											&StringType{},
 										},
 										&BasicLit{
 											pos(3, 5),
 											STRING,
 											"type system",
+											&StringType{},
 										},
 									},
 									[]expression{
@@ -681,6 +708,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(2, 14),
 													STRING,
 													"Yz",
+													&StringType{},
 												},
 											},
 											&ArrayType{elemType: &StringType{}},
@@ -692,16 +720,19 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(3, 21),
 													STRING,
 													"static",
+													&StringType{},
 												},
 												&BasicLit{
 													pos(3, 31),
 													STRING,
 													"strong",
+													&StringType{},
 												},
 												&BasicLit{
 													pos(3, 41),
 													STRING,
 													"structural",
+													&StringType{},
 												},
 											},
 											&ArrayType{elemType: &StringType{}},
@@ -737,11 +768,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										pos(1, 1),
 										IDENTIFIER,
 										"a",
+										new(TBD),
 									},
 									&BasicLit{
 										pos(1, 5),
 										INTEGER,
 										"1",
+										&IntType{},
 									},
 								},
 							},
@@ -773,9 +806,10 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 								&ShortDeclaration{
 									pos(1, 1),
 									&BasicLit{
-										pos: pos(1, 1),
-										tt:  IDENTIFIER,
-										val: "language",
+										pos:       pos(1, 1),
+										tt:        IDENTIFIER,
+										val:       "language",
+										basicType: new(TBD),
 									},
 									&Boc{
 										expressions: []expression{
@@ -785,19 +819,22 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(2, 6),
 													IDENTIFIER,
 													"name",
+													new(TBD),
 												},
 												&BasicLit{
 													pos(2, 12),
 													STRING,
 													"Yz",
+													&StringType{},
 												},
 											},
 											&ShortDeclaration{
 												pos(3, 6),
 												&BasicLit{
-													pos: pos(3, 6),
-													tt:  IDENTIFIER,
-													val: "features",
+													pos:       pos(3, 6),
+													tt:        IDENTIFIER,
+													val:       "features",
+													basicType: new(TBD), // wrong
 												}, &ArrayLit{
 													pos(3, 16),
 													[]expression{
@@ -805,16 +842,19 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 															pos(3, 17),
 															STRING,
 															"static",
+															&StringType{},
 														},
 														&BasicLit{
 															pos(3, 27),
 															STRING,
 															"strong",
+															&StringType{},
 														},
 														&BasicLit{
 															pos(3, 37),
 															STRING,
 															"structural",
+															&StringType{},
 														},
 													},
 													&ArrayType{elemType: &StringType{}},
@@ -855,17 +895,20 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										pos(1, 1),
 										IDENTIFIER,
 										"dictionary",
+										new(TBD),
 									},
 									&DictLit{
 										pos(1, 13),
-										"[]",
-										"",
-										"",
+										&DictType{
+											keyType: &StringType{},
+											valType: &TBD{},
+										},
 										[]expression{
 											&BasicLit{
 												pos(2, 3),
 												STRING,
 												"ready",
+												&StringType{},
 											},
 										},
 										[]expression{
@@ -873,6 +916,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 												pos(2, 13),
 												IDENTIFIER,
 												"false",
+												new(TBD),
 											},
 										},
 									},
@@ -912,6 +956,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										pos(1, 1),
 										IDENTIFIER,
 										"main",
+										new(TBD),
 									},
 									&Boc{
 										expressions: []expression{
@@ -921,11 +966,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(2, 9),
 													IDENTIFIER,
 													"msg",
+													new(TBD),
 												},
 												&BasicLit{
 													pos(2, 14),
 													STRING,
 													"Hello",
+													&StringType{},
 												},
 											},
 											&ShortDeclaration{
@@ -934,6 +981,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(3, 9),
 													IDENTIFIER,
 													"array",
+													new(TBD), // ArrayType ?
 												},
 												&ArrayLit{
 													pos(3, 16),
@@ -942,16 +990,19 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 															pos(3, 17),
 															INTEGER,
 															"1",
+															&IntType{},
 														},
 														&BasicLit{
 															pos(3, 20),
 															INTEGER,
 															"2",
+															&IntType{},
 														},
 														&BasicLit{
 															pos(3, 23),
 															INTEGER,
 															"3",
+															&IntType{},
 														},
 													},
 													&ArrayType{elemType: &IntType{}},
@@ -963,17 +1014,20 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(4, 9),
 													IDENTIFIER,
 													"dictionary",
+													new(TBD),
 												},
 												&DictLit{
 													pos(4, 21),
-													"[]",
-													"",
-													"",
+													&DictType{
+														keyType: &StringType{},
+														valType: &TBD{},
+													},
 													[]expression{
 														&BasicLit{
 															pos(5, 17),
 															STRING,
 															"ready",
+															&StringType{},
 														},
 													},
 													[]expression{
@@ -981,6 +1035,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 															pos(5, 26),
 															IDENTIFIER,
 															"false",
+															new(TBD),
 														},
 													},
 												},
@@ -1024,14 +1079,16 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 									[]expression{
 										&DictLit{
 											pos(2, 2),
-											"[]",
-											"",
-											"",
+											&DictType{
+												keyType: &StringType{},
+												valType: &TBD{},
+											},
 											[]expression{
 												&BasicLit{
 													pos(3, 3),
 													STRING,
 													"ready",
+													&StringType{},
 												},
 											},
 											[]expression{
@@ -1039,30 +1096,34 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													pos(3, 13),
 													IDENTIFIER,
 													"false",
+													new(TBD),
 												},
 											},
 										},
 										&DictLit{
 											pos(5, 2),
-											"[]",
-											"",
-											"",
+											&DictType{
+												keyType: &StringType{},
+												valType: &TBD{},
+											},
 											[]expression{
 												&BasicLit{
 													pos(6, 3),
 													STRING,
 													"done",
+													&StringType{},
 												},
 											}, []expression{
 												&BasicLit{
 													pos(6, 12),
 													IDENTIFIER,
 													"true",
+													new(TBD),
 												},
 											},
 										},
 									},
-									&ArrayType{elemType: &DictType{}}, //DictType{key: &StringType{}, val: &TBD{}}}},
+									&ArrayType{elemType: &DictType{keyType: &StringType{}, valType: &TBD{}}},
 								},
 							},
 							statements: []statement{},

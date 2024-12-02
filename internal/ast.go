@@ -21,23 +21,22 @@ type (
 	}
 
 	BasicLit struct {
-		pos position
-		tt  tokenType
-		val string
+		pos       position
+		tt        tokenType
+		val       string
+		basicType Type
 	}
 	ArrayLit struct {
 		pos       position
 		exps      []expression
-		arrayType Type
+		arrayType *ArrayType
 	}
 	// DictLit represents a dictionary literal [k1:v1 k2:v2] or [String]Int for empty dictionary
 	DictLit struct {
-		pos     position
-		val     string
-		keyType string
-		valType string
-		keys    []expression
-		values  []expression
+		pos      position
+		dictType *DictType
+		keys     []expression
+		values   []expression
 	}
 
 	ShortDeclaration struct {
@@ -74,16 +73,17 @@ func (bl *BasicLit) value() string {
 }
 
 func (bl *BasicLit) dataType() Type {
-	switch bl.tt {
-	case INTEGER:
-		return new(IntType)
-	case DECIMAL:
-		return new(DecimalType)
-	case STRING:
-		return new(StringType)
-	default:
-		return nil
-	}
+	return bl.basicType
+	//switch bl.tt {
+	//case INTEGER:
+	//	return new(IntType)
+	//case DECIMAL:
+	//	return new(DecimalType)
+	//case STRING:
+	//	return new(StringType)
+	//default:
+	//	return nil
+	//}
 }
 
 func (al *ArrayLit) String() string {
@@ -103,11 +103,11 @@ func (d *DictLit) String() string {
 }
 
 func (d *DictLit) value() string {
-	return d.val
+	return d.String()
 }
 
 func (d *DictLit) dataType() Type {
-	return new(DictType)
+	return d.dictType
 }
 
 func (sd *ShortDeclaration) String() string {

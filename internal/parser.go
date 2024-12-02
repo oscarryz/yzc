@@ -26,10 +26,13 @@ func Parse(parents []string, tokens []Token) (*Boc, error) {
 			expressions: []expression{
 				&ShortDeclaration{
 					pos: pos(0, 0),
+					// TODO: this is wrong, doesn't have to be a BasicLit
+					// it is an IDENTIFIER
 					key: &BasicLit{
 						pos: pos(0, 0),
 						tt:  IDENTIFIER,
 						val: parents[i],
+						//basicType: new(TBD),
 					},
 					val: leaf,
 				},
@@ -163,7 +166,8 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 	ctd := p.data
 
 	p.consume() // consume the  literal that brought us here
-	bl := &BasicLit{ctp, token, ctd}
+	basicType := typeFromTokenType(token)
+	bl := &BasicLit{ctp, token, ctd, basicType}
 	if p.tt == COLON {
 		p.consume() // consume the COLON
 		val, err := p.expression()
@@ -173,6 +177,20 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 		return &ShortDeclaration{ctp, bl, val}, nil
 	}
 	return bl, nil
+}
+
+func typeFromTokenType(token tokenType) Type {
+	switch token {
+	case INTEGER:
+		return new(IntType)
+	case DECIMAL:
+		return new(DecimalType)
+	case STRING:
+		return new(StringType)
+	default:
+		return new(TBD)
+	}
+
 }
 
 func (p *parser) parseBlockLiteral() (expression, error) {
@@ -202,32 +220,45 @@ func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 	p.consume()
 	at := new(ArrayType)
 	// TODO: need to handle arrays and dictionaries e.g. [][Int], [][String:Int]
-	switch ct {
-	case INTEGER:
-		at.elemType = new(IntType)
-	case DECIMAL:
-		at.elemType = new(DecimalType)
-	case STRING:
-		at.elemType = new(StringType)
-	case TYPE_IDENTIFIER:
-		switch ctd {
-		case "Int":
-			at.elemType = new(IntType)
-		case "Decimal":
-			at.elemType = new(DecimalType)
-		case "String":
-			at.elemType = new(StringType)
-		}
-	default:
-		at.elemType = new(TBD)
+	elemType := typeFromTokenType(ct)
+	if ct == TYPE_IDENTIFIER {
+		elemType = typeFromTokenData(ctd)
 	}
+	at.elemType = elemType
+	//switch ct {
+	//case INTEGER:
+	//	at.elemType = new(IntType)
+	//case DECIMAL:
+	//	at.elemType = new(DecimalType)
+	//case STRING:
+	//	at.elemType = new(StringType)
+	//case TYPE_IDENTIFIER:
+	//	at.elemType = typeFromTokenData(ctd)
+	//default:
+	//	at.elemType = new(TBD)
+	//}
 
 	return &ArrayLit{ap, []expression{}, at}, nil
 }
 
+func typeFromTokenData(tokenData string) Type {
+	switch tokenData {
+	case "Int":
+		return new(IntType)
+	case "Decimal":
+		return new(DecimalType)
+	case "String":
+		return new(StringType)
+	default:
+
+		return new(TBD)
+	}
+}
+
 // [ String ] Int
 func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
-	keyType := p.data
+	dictType := new(DictType)
+	dictType.keyType = typeFromTokenData(p.data)
 	p.consume()
 	if err := p.expect(RBRACKET); err != nil {
 		return nil, err
@@ -236,16 +267,16 @@ func (p *parser) parseEmptyDictionaryLiteral(ap position) (expression, error) {
 	if err := p.expect(TYPE_IDENTIFIER); err != nil {
 		return nil, err
 	}
-	valType := p.data
+	dictType.valType = typeFromTokenData(p.data)
 	p.consume()
-	return &DictLit{ap, "[]", keyType, valType, []expression{}, []expression{}}, nil
+	return &DictLit{ap, dictType, []expression{}, []expression{}}, nil
 }
 
 // [ (expression (, )?)+ ]
 // [ (expression : expression (, )?)+ ]
 func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression, error) {
 	var exps []expression
-	dl := &DictLit{ap, "[]", "", "", []expression{}, []expression{}}
+	dl := &DictLit{ap, newDictType(), []expression{}, []expression{}}
 	insideDict := false
 
 	for {
@@ -258,6 +289,8 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			insideDict = true
 			dl.keys = append(dl.keys, sd.key)
 			dl.values = append(dl.values, sd.val)
+			dl.dictType.keyType = sd.key.dataType()
+			dl.dictType.valType = sd.val.dataType()
 		} else if expr != nil {
 			exps = append(exps, expr)
 		} else {
@@ -290,19 +323,27 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 	}
 }
 
+func newDictType() *DictType {
+	dt := new(DictType)
+	dt.keyType = new(TBD)
+	dt.valType = new(TBD)
+	return dt
+}
+
 func createArrayLiteral(ap position, exps []expression) (expression, error) {
 	switch exps[0].(type) {
 	case *ArrayLit:
 		al, _ := exps[0].(*ArrayLit)
-		et := al.arrayType.(*ArrayType).elemType
+		et := al.arrayType.elemType
 		at := new(ArrayType)
 		at.elemType = et
 		return &ArrayLit{ap, exps, at}, nil
 	case *Boc:
 		// I think I need the type here
 		//bt := &Boc{[]expression{}, []statement{}}
-		bt := new(BocType)
-		return &ArrayLit{ap, exps, bt}, nil
+		at := new(ArrayType)
+		at.elemType = new(BocType)
+		return &ArrayLit{ap, exps, at}, nil
 	default:
 		at := new(ArrayType)
 		at.elemType = exps[0].dataType()
