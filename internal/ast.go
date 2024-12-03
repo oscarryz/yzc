@@ -40,6 +40,12 @@ type (
 	}
 
 	ShortDeclaration struct {
+		pos      position
+		variable *Variable
+		val      expression
+	}
+
+	KeyValue struct {
 		pos position
 		key expression
 		val expression
@@ -50,7 +56,36 @@ type (
 		exps   []expression
 		rparen position
 	}
+	Variable struct {
+		pos     position
+		name    string // empty name means only return type is expressed, single uppercase name generic
+		varType Type
+	}
 )
+
+func (k *KeyValue) String() string {
+	return prettyPrint(k, 0)
+}
+
+func (k *KeyValue) value() string {
+	return fmt.Sprintf("%s : %s", k.key.value(), k.val.value())
+}
+
+func (k *KeyValue) dataType() Type {
+	return k.val.dataType()
+}
+
+func (v *Variable) String() string {
+	return prettyPrint(v, 0)
+}
+
+func (v *Variable) value() string {
+	return v.name // TODO: what's the value of a variable?
+}
+
+func (v *Variable) dataType() Type {
+	return v.varType
+}
 
 func (boc *Boc) String() string {
 	return prettyPrint(boc, 0)
@@ -61,7 +96,7 @@ func (boc *Boc) value() string {
 }
 
 func (boc *Boc) dataType() Type {
-	return new(BocType)
+	return newBocType()
 }
 
 func (bl *BasicLit) String() string {
@@ -74,16 +109,6 @@ func (bl *BasicLit) value() string {
 
 func (bl *BasicLit) dataType() Type {
 	return bl.basicType
-	//switch bl.tt {
-	//case INTEGER:
-	//	return new(IntType)
-	//case DECIMAL:
-	//	return new(DecimalType)
-	//case STRING:
-	//	return new(StringType)
-	//default:
-	//	return nil
-	//}
 }
 
 func (al *ArrayLit) String() string {
@@ -114,7 +139,7 @@ func (sd *ShortDeclaration) String() string {
 	return prettyPrint(sd, 0)
 }
 func (sd *ShortDeclaration) value() string {
-	return fmt.Sprintf("%s : %s", sd.key.value(), sd.val.value())
+	return fmt.Sprintf("%s : %s", sd.variable, sd.val.value())
 }
 
 func (sd *ShortDeclaration) dataType() Type {

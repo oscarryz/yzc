@@ -22,19 +22,14 @@ func Parse(parents []string, tokens []Token) (*Boc, error) {
 	// Creates the intermediate parents.
 
 	for i := len(parents) - 1; i >= 0; i-- {
+		name := strings.ReplaceAll(parents[i], ".yz", "")
+
 		leaf = &Boc{
 			expressions: []expression{
 				&ShortDeclaration{
-					pos: pos(0, 0),
-					// TODO: this is wrong, doesn't have to be a BasicLit
-					// it is an IDENTIFIER
-					key: &BasicLit{
-						pos: pos(0, 0),
-						tt:  IDENTIFIER,
-						val: parents[i],
-						//basicType: new(TBD),
-					},
-					val: leaf,
+					pos:      pos(0, 0),
+					variable: &Variable{pos(0, 0), name, newBocType()},
+					val:      leaf,
 				},
 			},
 			statements: []statement{},
@@ -69,17 +64,6 @@ func (p *parser) expect(t tokenType) error {
 	}
 	return nil
 }
-
-// parse parses the input file and returns the Boc.
-
-//// Boc ::= block_body
-//func (p *parser) boc() (*Boc, error) {
-//	bb, e := p.boc()
-//	if e != nil {
-//		return nil, e
-//	}
-//	return &Boc{"", bb}, nil
-//}
 
 // block_body ::= (expression | statement) ((","|"\n") (expression | statement))* | ""
 func (p *parser) boc() (*Boc, error) {
@@ -174,7 +158,11 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &ShortDeclaration{ctp, bl, val}, nil
+		if _, ok := basicType.(*TBD); ok {
+			return &ShortDeclaration{ctp, &Variable{ctp, ctd, val.dataType()}, val}, nil
+		} else {
+			return &KeyValue{ctp, bl, val}, nil
+		}
 	}
 	return bl, nil
 }
@@ -225,19 +213,6 @@ func (p *parser) parseTypedArrayLiteral(ap position) (expression, error) {
 		elemType = typeFromTokenData(ctd)
 	}
 	at.elemType = elemType
-	//switch ct {
-	//case INTEGER:
-	//	at.elemType = new(IntType)
-	//case DECIMAL:
-	//	at.elemType = new(DecimalType)
-	//case STRING:
-	//	at.elemType = new(StringType)
-	//case TYPE_IDENTIFIER:
-	//	at.elemType = typeFromTokenData(ctd)
-	//default:
-	//	at.elemType = new(TBD)
-	//}
-
 	return &ArrayLit{ap, []expression{}, at}, nil
 }
 
@@ -285,11 +260,17 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 			return nil, err
 		}
 
-		if sd, ok := expr.(*ShortDeclaration); ok {
+		if kv, ok := expr.(*KeyValue); ok {
 			insideDict = true
-			dl.keys = append(dl.keys, sd.key)
+			dl.keys = append(dl.keys, kv.key)
+			dl.values = append(dl.values, kv.val)
+			dl.dictType.keyType = kv.key.dataType()
+			dl.dictType.valType = kv.val.dataType()
+		} else if sd, ok := expr.(*ShortDeclaration); ok {
+			insideDict = true
+			dl.keys = append(dl.keys, sd.variable)
 			dl.values = append(dl.values, sd.val)
-			dl.dictType.keyType = sd.key.dataType()
+			dl.dictType.keyType = sd.variable.dataType()
 			dl.dictType.valType = sd.val.dataType()
 		} else if expr != nil {
 			exps = append(exps, expr)
@@ -330,6 +311,16 @@ func newDictType() *DictType {
 	return dt
 }
 
+func newBocType() *BocType {
+	bt := new(BocType)
+	bt.variables = []*Variable{}
+	return bt
+}
+
+func newTBD() *TBD {
+	return new(TBD)
+}
+
 func createArrayLiteral(ap position, exps []expression) (expression, error) {
 	switch exps[0].(type) {
 	case *ArrayLit:
@@ -339,10 +330,8 @@ func createArrayLiteral(ap position, exps []expression) (expression, error) {
 		at.elemType = et
 		return &ArrayLit{ap, exps, at}, nil
 	case *Boc:
-		// I think I need the type here
-		//bt := &Boc{[]expression{}, []statement{}}
 		at := new(ArrayType)
-		at.elemType = new(BocType)
+		at.elemType = newBocType()
 		return &ArrayLit{ap, exps, at}, nil
 	default:
 		at := new(ArrayType)

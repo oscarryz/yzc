@@ -35,13 +35,10 @@ type (
 		Type
 	}
 	BocType struct {
-		variables []*Field
+		variables []*Variable
 		Type
 	}
-	Field struct {
-		name     string // nil means just type, single uppercase letter means generic
-		dataType Type
-	}
+
 	TBD struct {
 		Type
 	}

@@ -26,15 +26,11 @@ func TestPrettyPrint(t *testing.T) {
 			},
 			expected: `Boc(
             BasicLit(
-                pos: line: 1 col: 1
                 tt: str
                 val: Hello
-                basicType: {
-                    StringType
-                }
+                basicType: StringType
             )
-        )
-`,
+)`,
 		},
 
 		{
@@ -46,14 +42,10 @@ func TestPrettyPrint(t *testing.T) {
 				basicType: &StringType{},
 			},
 			expected: `BasicLit(
-            pos: line: 1 col: 1
             tt: str
             val: Hello
-            basicType: {
-                StringType
-            }
-        )
-`,
+            basicType: StringType
+)`,
 		},
 		{
 			name: "ArrayLit",
@@ -72,23 +64,15 @@ func TestPrettyPrint(t *testing.T) {
 				},
 			},
 			expected: `ArrayLit(
-            pos: line: 1 col: 1
-            arrayType:
-                ArrayType(
-                    elemType:  IntType
-                )
+            arrayType: ArrayType(IntType)
             exps: [
                 BasicLit(
-                    pos: line: 2 col: 1
                     tt: int
                     val: 1
-                    basicType: {
-                        IntType
-                    }
+                    basicType: IntType
                 )
             ]
-        )
-`,
+)`,
 		},
 	}
 

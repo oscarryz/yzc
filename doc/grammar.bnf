@@ -128,7 +128,7 @@ dictionary_literal
 // a, b, c = 1, 2, 3
 assignment ::= variable ("," variable)* "=" expression ("," expression)*
 
-variable ::= variable_identifier
+variable ::= variable_identifier | non_word_identifier
 
 // Only one variable can be defined to be an expression.
 // That in turn can be used to define other but they all
