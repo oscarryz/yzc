@@ -638,15 +638,13 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 										},
 									},
 									[]expression{
-										&BasicLit{
+										&Variable{
 											pos(1, 5),
-											IDENTIFIER,
 											"v1",
 											newTBD(),
 										},
-										&BasicLit{
+										&Variable{
 											pos(1, 12),
-											IDENTIFIER,
 											"v2",
 											newTBD(),
 										},
@@ -909,9 +907,8 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 											},
 										},
 										[]expression{
-											&BasicLit{
+											&Variable{
 												pos(2, 13),
-												IDENTIFIER,
 												"false",
 												newTBD(),
 											},
@@ -1027,9 +1024,8 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 														},
 													},
 													[]expression{
-														&BasicLit{
+														&Variable{
 															pos(5, 26),
-															IDENTIFIER,
 															"false",
 															newTBD(),
 														},
@@ -1088,9 +1084,8 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 												},
 											},
 											[]expression{
-												&BasicLit{
+												&Variable{
 													pos(3, 13),
-													IDENTIFIER,
 													"false",
 													newTBD(),
 												},
@@ -1110,9 +1105,8 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 													&StringType{},
 												},
 											}, []expression{
-												&BasicLit{
+												&Variable{
 													pos(6, 12),
-													IDENTIFIER,
 													"true",
 													newTBD(),
 												},
@@ -1164,6 +1158,34 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 					},
 				},
 
+				statements: []statement{},
+			},
+		},
+		{
+			name:    "Variable",
+			parents: []string{"variable"},
+			source:  `a`,
+			want: &Boc{
+				expressions: []expression{
+					&ShortDeclaration{
+						pos: pos(0, 0),
+						variable: &Variable{
+							pos:     pos(0, 0),
+							name:    "variable",
+							varType: newBocType(),
+						},
+						val: &Boc{
+							expressions: []expression{
+								&Variable{
+									pos:     pos(1, 1),
+									name:    "a",
+									varType: newTBD(),
+								},
+							},
+							statements: []statement{},
+						},
+					},
+				},
 				statements: []statement{},
 			},
 		},

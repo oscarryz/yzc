@@ -209,7 +209,7 @@ new_type_definition ::= type_identifier ":" block_literal
 generic_type_identifier ::= UPPER_CASE // single uppercase letter
 type_identifier ::= UPPER_CASE (variable_identifier)*
 variable_identifier ::= CHARACTER+ // not start with numbers, don't contain reserved and don't start with uppercase
-non_word_identifier ::= NOT A CHARACTER+ // as defined by unicode, minus reserved punct
+non_word_identifier ::= NOT_A_CHARACTER+ // as defined by unicode, minus reserved punctuation
 
 //noinspection BnfUnusedRule
 reserved_char ::= "#" | "(" | ")" | "{" | "}" | "[" | "]" | ":" | ";" | "," | "."

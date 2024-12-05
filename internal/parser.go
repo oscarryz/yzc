@@ -150,8 +150,18 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 	ctd := p.data
 
 	p.consume() // consume the  literal that brought us here
+	var exp expression
+	var variable *Variable
+	var basicLit *BasicLit
 	basicType := typeFromTokenType(token)
-	bl := &BasicLit{ctp, token, ctd, basicType}
+	if token == IDENTIFIER || token == NON_WORD_IDENTIFIER {
+		variable = &Variable{ctp, ctd, basicType}
+		exp = variable
+	} else {
+		basicLit = &BasicLit{ctp, token, ctd, basicType}
+		exp = basicLit
+	}
+
 	if p.tt == COLON {
 		p.consume() // consume the COLON
 		val, err := p.expression()
@@ -159,12 +169,13 @@ func (p *parser) parseLiteralOrShortDeclaration() (expression, error) {
 			return nil, err
 		}
 		if _, ok := basicType.(*TBD); ok {
-			return &ShortDeclaration{ctp, &Variable{ctp, ctd, val.dataType()}, val}, nil
+			variable.varType = val.dataType()
+			return &ShortDeclaration{ctp, variable, val}, nil
 		} else {
-			return &KeyValue{ctp, bl, val}, nil
+			return &KeyValue{ctp, basicLit, val}, nil
 		}
 	}
-	return bl, nil
+	return exp, nil
 }
 
 func typeFromTokenType(token tokenType) Type {
