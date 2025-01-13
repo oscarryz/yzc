@@ -27,7 +27,7 @@ func TestPrettyPrint(t *testing.T) {
 			expected: `Boc(
             BasicLit(
                 tt: str
-                val: Hello
+                value: Hello
                 basicType: StringType
             )
 )`,
@@ -43,7 +43,7 @@ func TestPrettyPrint(t *testing.T) {
 			},
 			expected: `BasicLit(
             tt: str
-            val: Hello
+            value: Hello
             basicType: StringType
 )`,
 		},
@@ -54,7 +54,7 @@ func TestPrettyPrint(t *testing.T) {
 				arrayType: &ArrayType{
 					elemType: &IntType{},
 				},
-				exps: []expression{
+				expressions: []expression{
 					&BasicLit{
 						pos:       pos(2, 1),
 						tt:        INTEGER,
@@ -65,10 +65,10 @@ func TestPrettyPrint(t *testing.T) {
 			},
 			expected: `ArrayLit(
             arrayType: ArrayType(IntType)
-            exps: [
+            expressions: [
                 BasicLit(
                     tt: int
-                    val: 1
+                    value: 1
                     basicType: IntType
                 )
             ]

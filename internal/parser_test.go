@@ -31,7 +31,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "empty",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{},
 							statements:  []statement{},
 						},
@@ -55,7 +55,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "parent",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos: pos(0, 0),
@@ -64,7 +64,7 @@ func TestParser_Parse(t *testing.T) {
 										name:    "simple",
 										varType: newBocType(),
 									},
-									val: &Boc{
+									value: &Boc{
 										expressions: []expression{},
 										statements:  []statement{},
 									},
@@ -93,7 +93,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "literals",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&BasicLit{
 									pos(1, 1),
@@ -125,7 +125,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "string_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&BasicLit{
 									pos(1, 1),
@@ -158,7 +158,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "block_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&Boc{
 									expressions: []expression{},
@@ -190,7 +190,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "two_literals",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&BasicLit{
 									pos(1, 1),
@@ -240,7 +240,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "two_literals_newline",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&BasicLit{
 									pos(1, 1),
@@ -281,7 +281,7 @@ func TestParser_Parse(t *testing.T) {
 							name:    "array_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -340,7 +340,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "two_literals",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -374,7 +374,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "array_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -421,7 +421,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "array_of_arrays_2",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -484,7 +484,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "array_of_arrays",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -534,7 +534,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "array_of_blocks",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -585,7 +585,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "empty_dictionary_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
@@ -617,7 +617,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "dictionary_literal",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
@@ -674,7 +674,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "dictionary_literal_type",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&DictLit{
 									pos(1, 1),
@@ -757,7 +757,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "short_declaration",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos(1, 1),
@@ -797,7 +797,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "short_declaration_block_array",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos(1, 1),
@@ -880,7 +880,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "closing",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos(1, 1),
@@ -942,7 +942,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "short_declaration_literal_array_dictionary",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos(1, 1),
@@ -1064,7 +1064,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "array_of_dictionaries",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ArrayLit{
 									pos(1, 1),
@@ -1136,7 +1136,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "variable",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&ShortDeclaration{
 									pos(1, 1),
@@ -1174,7 +1174,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 							name:    "variable",
 							varType: newBocType(),
 						},
-						val: &Boc{
+						value: &Boc{
 							expressions: []expression{
 								&Variable{
 									pos:     pos(1, 1),
@@ -1210,6 +1210,7 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 
 			deep.CompareUnexportedFields = true
 			if diff := deep.Equal(got, tt.want); diff != nil {
+				t.Logf("Want AST: %s", tt.want)
 				fmt.Printf("%s", diff)
 				t.Errorf("diff = %v", diff)
 			}

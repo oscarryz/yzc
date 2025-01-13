@@ -1,3 +1,24 @@
+## Commas and semicolons
+
+Currently, a boc can parse two expressions separated by a comma. This should be a special case when more than one variable is assigned
+
+```js
+// Good
+a,b = 1, 2
+// Bad
+a = 1, b = 2
+```
+The second should be written as
+```js
+a = 1; b = 2
+```
+
+
+
+## A variable is not an expression
+
+It currently implements it, but it should be removed. 
+
 ## Work on assignments, multiple and single. 
 
 ```
