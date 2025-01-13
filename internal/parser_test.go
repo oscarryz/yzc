@@ -3,7 +3,9 @@ package internal
 import (
 	"fmt"
 	"github.com/go-test/deep"
+	"os"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -1216,4 +1218,72 @@ func TestParse_TokenizeAndParse(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParse_FromSource(t *testing.T) {
+
+	// Read the testdata directory
+	files, err := os.ReadDir("testdata")
+	if err != nil {
+		t.Errorf("ReadDir() error = \"%v\"", err)
+		return
+	}
+	// for each file read the .yz source file
+	for _, file := range files {
+		if !strings.HasSuffix(file.Name(), "ast.yz") && strings.HasSuffix(file.Name(), ".yz") {
+
+			sourceFile := fmt.Sprintf("testdata/%s", file.Name())
+			astFile := fmt.Sprintf("testdata/%s_ast.yz", strings.TrimSuffix(file.Name(), ".yz"))
+			source, err := os.ReadFile(sourceFile)
+			if err != nil {
+				t.Errorf("ReadFile() error = \"%v\"", err)
+			}
+			wantAst, err := os.ReadFile(astFile)
+			if err != nil {
+				t.Errorf("ReadFile() error = \"%v\"", err)
+			}
+			tokens, err := Tokenize([]string{file.Name()}, string(source))
+			if err != nil {
+				t.Errorf("Tokenize() error = \"%v\"", err)
+				return
+			}
+			got, err := Parse([]string{file.Name()}, tokens)
+			if err != nil {
+				t.Errorf("Parse() error = \"%v\"", err)
+				return
+			}
+
+			gotString := strings.TrimSpace(got.String())
+			wantString := strings.TrimSpace(string(wantAst))
+			gi, wi := 0, 0
+
+			for gi < len(gotString) && wi < len(wantString) {
+				// Skip whitespace in gotString
+				for gi < len(gotString) && (gotString[gi] == ' ' || gotString[gi] == '\r' || gotString[gi] == '\n' || gotString[gi] == '\t') {
+					gi++
+				}
+
+				// Skip whitespace in wantString
+				for wi < len(wantString) && (wantString[wi] == ' ' || wantString[wi] == '\r' || wantString[wi] == '\n' || wantString[wi] == '\t') {
+					wi++
+				}
+
+				// Check if we are still within bounds
+				if gi < len(gotString) && wi < len(wantString) {
+					if gotString[gi] != wantString[wi] {
+						t.Errorf("At index: %d\n Got: %s\nWant: %s\n", gi, gotString[gi:], wantString[wi:])
+						return
+					}
+					gi++
+					wi++
+				}
+			}
+
+			// Check if one string is longer than the other
+			if gi < len(gotString) || wi < len(wantString) {
+				t.Errorf("Strings differ in length\n Got: %s\nWant: %s\n", gotString[gi:], wantString[wi:])
+			}
+		}
+	}
+
 }
