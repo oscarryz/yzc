@@ -29,7 +29,7 @@ func Parse(parents []string, tokens []Token) (*Boc, error) {
 				&ShortDeclaration{
 					pos:      pos(0, 0),
 					variable: &Variable{pos(0, 0), name, newBocType()},
-					val:      leaf,
+					value:    leaf,
 				},
 			},
 			statements: []statement{},
@@ -280,9 +280,9 @@ func (p *parser) parseNonEmptyArrayOrDictionaryLiteral(ap position) (expression,
 		} else if sd, ok := expr.(*ShortDeclaration); ok {
 			insideDict = true
 			dl.keys = append(dl.keys, sd.variable)
-			dl.values = append(dl.values, sd.val)
+			dl.values = append(dl.values, sd.value)
 			dl.dictType.keyType = sd.variable.dataType()
-			dl.dictType.valType = sd.val.dataType()
+			dl.dictType.valType = sd.value.dataType()
 		} else if expr != nil {
 			exps = append(exps, expr)
 		} else {

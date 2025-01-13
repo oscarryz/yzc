@@ -7,7 +7,7 @@ import (
 type (
 	expression interface {
 		String() string
-		value() string
+		stringValue() string
 		dataType() Type
 	}
 	statement interface {
@@ -27,9 +27,9 @@ type (
 		basicType Type
 	}
 	ArrayLit struct {
-		pos       position
-		exps      []expression
-		arrayType *ArrayType
+		pos         position
+		expressions []expression
+		arrayType   *ArrayType
 	}
 	// DictLit represents a dictionary literal [k1:v1 k2:v2] or [String]Int for empty dictionary
 	DictLit struct {
@@ -42,7 +42,7 @@ type (
 	ShortDeclaration struct {
 		pos      position
 		variable *Variable
-		val      expression
+		value    expression
 	}
 
 	KeyValue struct {
@@ -52,9 +52,9 @@ type (
 	}
 
 	ParenthesisExp struct {
-		lparen position
-		exps   []expression
-		rparen position
+		lparen      position
+		expressions []expression
+		rparen      position
 	}
 	Variable struct {
 		pos     position
@@ -67,8 +67,8 @@ func (k *KeyValue) String() string {
 	return prettyPrint(k, 0)
 }
 
-func (k *KeyValue) value() string {
-	return fmt.Sprintf("%s : %s", k.key.value(), k.val.value())
+func (k *KeyValue) stringValue() string {
+	return fmt.Sprintf("%s : %s", k.key.stringValue(), k.val.stringValue())
 }
 
 func (k *KeyValue) dataType() Type {
@@ -79,8 +79,8 @@ func (v *Variable) String() string {
 	return prettyPrint(v, 0)
 }
 
-func (v *Variable) value() string {
-	return v.name // TODO: what's the value of a variable?
+func (v *Variable) stringValue() string {
+	return v.name
 }
 
 func (v *Variable) dataType() Type {
@@ -91,7 +91,7 @@ func (boc *Boc) String() string {
 	return prettyPrint(boc, 0)
 }
 
-func (boc *Boc) value() string {
+func (boc *Boc) stringValue() string {
 	return "{}"
 }
 
@@ -103,7 +103,7 @@ func (bl *BasicLit) String() string {
 	return prettyPrint(bl, 0)
 }
 
-func (bl *BasicLit) value() string {
+func (bl *BasicLit) stringValue() string {
 	return bl.val
 }
 
@@ -115,7 +115,7 @@ func (al *ArrayLit) String() string {
 	return prettyPrint(al, 0)
 }
 
-func (al *ArrayLit) value() string {
+func (al *ArrayLit) stringValue() string {
 	return al.String()
 }
 
@@ -127,7 +127,7 @@ func (d *DictLit) String() string {
 	return prettyPrint(d, 0)
 }
 
-func (d *DictLit) value() string {
+func (d *DictLit) stringValue() string {
 	return d.String()
 }
 
@@ -138,10 +138,10 @@ func (d *DictLit) dataType() Type {
 func (sd *ShortDeclaration) String() string {
 	return prettyPrint(sd, 0)
 }
-func (sd *ShortDeclaration) value() string {
-	return fmt.Sprintf("%s : %s", sd.variable, sd.val.value())
+func (sd *ShortDeclaration) stringValue() string {
+	return fmt.Sprintf("%s : %s", sd.variable, sd.value.stringValue())
 }
 
 func (sd *ShortDeclaration) dataType() Type {
-	return sd.val.dataType()
+	return sd.value.dataType()
 }

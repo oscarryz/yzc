@@ -386,7 +386,15 @@ func (t *tokenizer) tokenize() ([]Token, error) {
 func (t *tokenizer) addCommaIfNeeded() {
 	if len(t.tokens) > 0 {
 		last := t.tokens[len(t.tokens)-1]
-		if last.tt == IDENTIFIER || last.tt == INTEGER || last.tt == DECIMAL || last.tt == STRING || last.tt == NON_WORD_IDENTIFIER || last.tt == TYPE_IDENTIFIER || last.tt == RBRACE || last.tt == RPAREN || last.tt == RBRACKET {
+		if last.tt == IDENTIFIER ||
+			last.tt == NON_WORD_IDENTIFIER ||
+			last.tt == TYPE_IDENTIFIER ||
+			last.tt == INTEGER ||
+			last.tt == DECIMAL ||
+			last.tt == STRING ||
+			last.tt == RBRACE ||
+			last.tt == RPAREN ||
+			last.tt == RBRACKET {
 			t.addToken(COMMA, ",")
 		}
 	}
