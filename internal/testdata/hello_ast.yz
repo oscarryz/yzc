@@ -1,0 +1,56 @@
+Boc(
+    ShortDeclaration(
+        Var(
+            name: hello
+            varType: BocType
+        )
+        Boc(
+            ShortDeclaration(
+                Var(
+                    name: language
+                    varType: BocType
+                )
+                Boc(
+                    ShortDeclaration(
+                        Var(
+                            name: name
+                            varType: StringType
+                        )
+                        BasicLit(
+                            tt: str
+                            value: Yz
+                            basicType: StringType
+                        )
+                    )
+                    ShortDeclaration(
+                        Var(
+                            name: type_system
+                            varType: ArrayType(StringType)
+
+                        )
+                        ArrayLit(
+                            arrayType: ArrayType(StringType)
+                            expressions: [
+                                BasicLit(
+                                    tt: str
+                                    value: static
+                                    basicType: StringType
+                                )
+                                BasicLit(
+                                    tt: str
+                                    value: strong
+                                    basicType: StringType
+                                )
+                                BasicLit(
+                                    tt: str
+                                    value: structural
+                                    basicType: StringType
+                                )
+                            ]
+                        )
+                    )
+                )
+            )
+        )
+    )
+)

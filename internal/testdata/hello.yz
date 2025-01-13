@@ -1,0 +1,7 @@
+// A block with two variables:
+// `name` of type "String"
+// `type_system` of type "Array of Strings"
+language: {
+    name: "Yz"
+    type_system: ["static", "strong", "structural"]
+}

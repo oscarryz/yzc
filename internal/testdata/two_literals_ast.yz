@@ -1,27 +1,21 @@
-"
-source: '[]Int; \"Hello\"'
-"
 Boc(
-    expressions: [
-        ShortDeclaration(
-            variable: Var(
-                name: two_literals
-                varType: BocType()
-            )
-            value: Boc(
+    ShortDeclaration(
+        Var(
+            name: two_literals
+            varType: BocType
+        )
+        Boc(
+            ArrayLit(
+                arrayType: ArrayType(IntType)
                 expressions: [
-                    ArrayLit(
-                        arrayType: ArrayType(IntType)
-                        expressions: [
-                        ]
-                    ),
-                    BasicLit(
-                        tt: str
-                        val: Hello
-                        basicType: StringType
-                    )
                 ]
             )
-        ),
-    ]
+            BasicLit(
+                tt: str
+                value: Hello
+                basicType: StringType
+            )
+        )
+    )
 )
+
