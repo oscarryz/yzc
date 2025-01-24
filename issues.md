@@ -1,36 +1,63 @@
 ## Commas and semicolons
 
-Currently, a boc can parse two expressions separated by a comma. This should be a special case when more than one variable is assigned
+Currently, a boc can parse two expressions separated by a comma. This should be a special case when more than one
+variable is assigned
 
 ```js
 // Good
-a,b = 1, 2
+a, b = 1, 2
 // Bad
 a = 1, b = 2
 ```
+
 The second should be written as
+
 ```js
-a = 1; b = 2
+a = 1;
+b = 2
 ```
 
+## Update grammar to support Variants, and When Bocs
 
+Variant example
+
+```
+Option {
+  Some(value T),
+  None()
+}
+```
+
+When example
+
+```
+// Formatting is not final
+option Option(Int) = Option.Some(1)
+option when {
+  Some => option.value + 1
+  }, { 
+  None => 0
+}
+```
 
 ## A variable is not an expression
 
-It currently implements it, but it should be removed. 
+It currently implements it, but it should be removed.
 
-## Work on assignments, multiple and single. 
+## Work on assignments, multiple and single.
 
 ```
 a = 1 
 ```
+
 Is an expression that whose value is the rhs.
 
 What about `a, b,c = 1, 2, 3`?
 
-Should it be the same as `a, b, c : {1, 2, 3}()`? 
+Should it be the same as `a, b, c : {1, 2, 3}()`?
 
-Is that a list in the AST? Or is a sugared form of  ? 
+Is that a list in the AST? Or is a sugared form of ?
+
 ```
 a = 1
 b = 2
