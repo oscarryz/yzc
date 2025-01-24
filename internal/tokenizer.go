@@ -12,19 +12,21 @@ import (
 const (
 	EOF tokenType = iota
 	// punctuation
-	LPAREN    // (
-	RPAREN    // )
-	LBRACE    // {
-	RBRACE    // }
-	LBRACKET  // [
-	RBRACKET  // ]
-	COMMA     // ,
-	COLON     // :
-	SEMICOLON // ;
-	PERIOD    // .
-	ASSIGN    // =
-	EQUALS    // ==
-	HASH      // #
+	LPAREN     // (
+	RPAREN     // )
+	LBRACE     // {
+	RBRACE     // }
+	LBRACKET   // [
+	RBRACKET   // ]
+	COMMA      // ,
+	COLON      // :
+	SEMICOLON  // ;
+	PERIOD     // .
+	ASSIGN     // =
+	EQUALS     // ==
+	HASH       // #
+	THEN_ARROW // / =>
+	WHEN       // when
 
 	// literals
 	INTEGER // int
@@ -65,8 +67,8 @@ type tokenizer struct {
 }
 
 func (tt tokenType) String() string {
-	descriptions := [25]string{
-		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`,
+	descriptions := [27]string{
+		`EOF`, `(`, `)`, `{`, `}`, `[`, `]`, `,`, `:`, `;`, `.`, `=`, `==`, `#`, `=>`, `when`,
 		`int`, `dec`, `str`, `id`, `tid`, `nwid`, "BREAK", "CONTINUE", "RETURN", "Unexpected",
 	}
 	vot := int(tt)
@@ -199,6 +201,10 @@ func lookupIdent(identifier string) tokenType {
 		return ASSIGN
 	case "==":
 		return EQUALS
+	case "=>":
+		return THEN_ARROW
+	case "when":
+		return WHEN
 	case "break":
 		return BREAK
 	case "continue":
