@@ -16,7 +16,7 @@ func TestTokenizer_Tokenize(t *testing.T) {
 		{
 			"All the tokens",
 			[]string{"test.yz"},
-			`( ) { } [ ] , : ; . = # 
+			`( ) { } [ ] , : ; . = # => when
 1 1.0 "Hello, World!" 'Hello, name!' a Point + break continue return /* This is a block comment */ // This is a line comment`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: LPAREN, data: "("},
@@ -31,6 +31,8 @@ func TestTokenizer_Tokenize(t *testing.T) {
 				{pos: position{line: 1, col: 19}, tt: PERIOD, data: "."},
 				{pos: position{line: 1, col: 21}, tt: ASSIGN, data: "="},
 				{pos: position{line: 1, col: 23}, tt: HASH, data: "#"},
+				{pos: position{line: 1, col: 25}, tt: THEN_ARROW, data: "=>"},
+				{pos: position{line: 1, col: 28}, tt: WHEN, data: "when"},
 				{pos: position{line: 2, col: 1}, tt: INTEGER, data: "1"},
 				{pos: position{line: 2, col: 3}, tt: DECIMAL, data: "1.0"},
 				{pos: position{line: 2, col: 7}, tt: STRING, data: "Hello, World!"},
@@ -229,7 +231,7 @@ plusOne: -1 + -2.0
 			`== => =< =a =`,
 			[]Token{
 				{pos: position{line: 1, col: 1}, tt: EQUALS, data: "=="},
-				{pos: position{line: 1, col: 4}, tt: NON_WORD_IDENTIFIER, data: "=>"},
+				{pos: position{line: 1, col: 4}, tt: THEN_ARROW, data: "=>"},
 				{pos: position{line: 1, col: 7}, tt: NON_WORD_IDENTIFIER, data: "=<"},
 				{pos: position{line: 1, col: 10}, tt: IDENTIFIER, data: "=a"},
 				{pos: position{line: 1, col: 13}, tt: ASSIGN, data: "="},

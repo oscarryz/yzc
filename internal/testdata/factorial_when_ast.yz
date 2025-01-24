@@ -1,0 +1,10 @@
+Boc(
+  ShortDeclaration(
+    Var(
+        name: factorial_when
+        varType: BocType
+    )
+    Boc(
+    )
+  )
+)
