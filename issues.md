@@ -1,9 +1,9 @@
 ## Finalize the grammar for `when` and `match` expressions
-Decide if want to keep the `when` and `match` as separate expressions
-with their own keywordm  or unified them into a single `match` expression 
+Decide if we want to keep the `when` and `match` as separate expressions
+with their own keyword  or unified them into a single `match` expression 
 with overloaded syntax.
 
-A) Separete
+A) Separate
 
 ```
 // Checking if an expression is true
