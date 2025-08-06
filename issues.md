@@ -1,7 +1,34 @@
 ## Finalize the grammar for `when` and `match` expressions
-Decide if want to keep the `when` and `match` expressions or unified them into a single `match` expression.
+Decide if want to keep the `when` and `match` as separate expressions
+with their own keywordm  or unified them into a single `match` expression 
+with overloaded syntax.
 
+A) Separete
 
+```
+// Checking if an expression is true
+when 
+{ n == 0 => print("n is zero"},
+{ else => print("not zero" }
+
+// Checking if a variable has a type
+match obj 
+{ Option => print("The value of obj is `obj`") },
+{ None  => print("There was no value") } 
+```
+
+B) Same 
+```
+// Checking if an expression is true
+match 
+{ n == 0 => print("n is zero"},
+{ else => print("not zero" }
+
+// Checking if a variable has a type
+match obj 
+{ Option => print("The value of obj is `obj`") },
+{ None  => print("There was no value") } 
+```
 ## Commas and semicolons
 
 Currently, a boc can parse two expressions separated by a comma. This should be a special case when more than one
